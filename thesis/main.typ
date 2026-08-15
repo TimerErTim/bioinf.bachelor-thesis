@@ -4,33 +4,25 @@
 
 #import "@preview/easy-hgb-thesis:0.2.1": full-thesis, titlepage, WORK_TYPES
 
-// We configure the document data here, this will be in the title page and others
 #set document(
-  title: "Thesis Title",
-  // Or single string: "Author Name"
-  author: ("Author Name", "Name Two", "Name Three"),
-  // Keep Short and Simple, no abstract
-  description: "Thesis Description",
-  // Optional, can be deleted.
-  keywords: ("Keyword 1 ", "Keyword 2"),
+  title: "Makroevolution in multi-agent cellular automata",  // TODO: lock-in later
+  author: ("Tim Peko"),
+  description: "Makroevolution in multi-agent cellular automata",
+  keywords: ("simulation", "cellular automata", "multi-agent systems", "evolution", "population dynamics"),
 )
-// If German, set to "de" instead of "en"
 #set text(lang: "en")
 
-#import "abbrev.typ": abbr
-// Wrap the document in the full-thesis template
+//#import "abbrev.typ": abbr
 #show: full-thesis.with(
   titlepage: titlepage(
-    "Computer Science",
-    "Dr. Max Mentorman",
+    "Medical and Bioinformatics",
+    "FH-Prof. PD DI Dr. Stephan Winkler",
     work-type: WORK_TYPES.bachelor-thesis,
   ),
   acknowledgement: include "chapters/acknowledgement.typ", // Can be deleted if not required
   kurzfassung: include "chapters/kurzfassung.typ",
   abstract: include "chapters/abstract.typ",
-  preamble: include "chapters/preamble.typ", // Can be deleted if not required
-  appendix: include "chapters/appendix.typ", // Can be deleted if not required
-  abbreviations: abbr, // Can be deleted if you don't need abbreviations
+  //appendix: include "chapters/appendix.typ", // Can be deleted if not required
   bibl: bibliography("bib.yaml"), // Can be replaced with a BibLaTex file,
 
   // Demonstration of how to apply custom styles to sections, can be deleted if not required.
@@ -38,14 +30,10 @@
     show table.cell.where(y: 0): strong
     it
   },
-  abbreviations-style: it => {
-    set table(fill: (x, y) => if y == 0 { gray })
-    it
-  },
 )
 
-// Include your chapters here, content can also be written here directly but
-// may become confusing and hard to maintain with very long contents
 #include "chapters/introduction.typ"
+#include "chapters/foundation.typ"
 #include "chapters/methodology.typ"
+#include "chapters/results.typ"
 #include "chapters/conclusion.typ"

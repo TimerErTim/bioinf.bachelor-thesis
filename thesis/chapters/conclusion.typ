@@ -1,6 +1,4 @@
-// Demonstration chapter, will be completely replaced with your own chapter composition
-
-= Conclusion
+= Conclusion (and future work)
 
 #lorem(30)
 
