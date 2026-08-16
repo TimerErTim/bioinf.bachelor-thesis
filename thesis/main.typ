@@ -5,9 +5,18 @@
 #import "@preview/easy-hgb-thesis:0.2.1": full-thesis, titlepage, WORK_TYPES
 
 #set document(
-  title: "Makroevolution in multi-agent cellular automata",  // TODO: lock-in later
+  title: "A population-based multi-agent approach for simulating large-scale system dynamics in discrete environments",
   author: ("Tim Peko"),
-  description: "Makroevolution in multi-agent cellular automata",
+  description: ```
+  This work presents a new way to simulate how large systems behave over time in a grid-like world, using groups of agents that each stand for a species. The simulation is programmed in Rust.
+
+  The core concepts are:
+  1. The environment is set up as a grid, similar to cellular automata, which allows things like gas concentrations to spread from cell to cell.
+  2. Each cell holds agents that represent whole species populations, not individual organisms.
+
+  Concept 1. time step updates are based on physical laws.
+  Concept 2. time step updates are based on an approximative MARL model.
+  ```,
   keywords: ("simulation", "cellular automata", "multi-agent systems", "evolution", "population dynamics"),
 )
 #set text(lang: "en")
