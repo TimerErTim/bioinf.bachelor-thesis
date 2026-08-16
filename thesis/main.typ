@@ -4,8 +4,10 @@
 
 #import "@preview/easy-hgb-thesis:0.2.1": full-thesis, titlepage, WORK_TYPES
 
+#let title = sys.inputs.at("title", default: "TITLE MISSING")
+
 #set document(
-  title: "A population-based multi-agent approach for simulating large-scale system dynamics in discrete environments",
+  title: title,
   author: ("Tim Peko"),
   description: ```
   This work presents a new way to simulate how large systems behave over time in a grid-like world, using groups of agents that each stand for a species. The simulation is programmed in Rust.

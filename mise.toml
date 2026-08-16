@@ -6,12 +6,16 @@ typstyle = "0.15.0"
 TYPST_ROOT = "{{config_root}}"
 TYPST_FONT_PATHS = "{{config_root}}/thesis/fonts"
 
+[vars]
+THESIS_TITLE = "A population-based multi-agent approach for simulating large-scale system dynamics in discrete environments"
+
 [tasks."fmt:typst"]
 description = "Format the typst code"
 run = ["typstyle -i ./ --timing"]
 
 [tasks."export-thesis"]
 description = "Export the document to PDF"
+env = { THESIS_TITLE = "{{ vars.THESIS_TITLE }}" }
 run = [
-    "typst compile thesis/main.typ --format pdf --pdf-standard a-3u 'Tim Peko BSc Bioinformatics Thesis - Makroevolution in multi-agent cellular automata.pdf'"
+    'typst compile thesis/main.typ --format pdf --input "title=$THESIS_TITLE" --pdf-standard a-3u "Tim Peko BSc Bioinformatics Thesis - {{ env.THESIS_TITLE }}.pdf"'
 ]
