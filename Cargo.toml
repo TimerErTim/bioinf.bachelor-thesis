@@ -1,0 +1,20 @@
+[workspace]
+members = ["crates/*", "runnables/pbma-gui"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license-file = "LICENSE"
+authors = ["Tim Peko <timerertim@gmail.com>"]
+repository = "https://github.com/TimerErTim/bioinf.bachelor-thesis"
+
+
+[workspace.dependencies]
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = 3
+strip = true

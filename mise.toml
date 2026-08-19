@@ -2,6 +2,9 @@
 typst = "0.15.0"
 typstyle = "0.15.0"
 
+[settings]
+idiomatic_version_file_enable_tools = ["rust"]
+
 [env]
 TYPST_ROOT = "{{config_root}}"
 TYPST_FONT_PATHS = "{{config_root}}/thesis/fonts"
