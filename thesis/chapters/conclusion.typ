@@ -1,6 +1,8 @@
-= Conclusion (and future work)
+= Conclusion
 
 #lorem(30)
+
+== Limitations
 
 == Future Work
 

@@ -2,9 +2,9 @@
 // Beware: Headings are nested automatically, so top level heading here will be top level subheading
 // under the appendix section in the final document
 
-= Demo Chapter
+= External Resources
 
-#lorem(50)
+- GitHub Repository: https://github.com/TimerErTim/bioinf.bachelor-thesis
 
 = Source Codes
 

@@ -3,5 +3,6 @@
 
 #let abbr = (
   AI: "Artificial Intelligence",
-  BMBF: [Bundesministerium für Bildung und Forschung],
+  TaNa: [Tangled Nature],
+  MARL: [Multi-Agent Reinforcement Learning],
 )

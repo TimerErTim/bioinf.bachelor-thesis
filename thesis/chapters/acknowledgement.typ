@@ -1,5 +1,1 @@
-// Optional: Add an acknowledgement chapter, can be removed
-// Beware: Headings are nested automatically, so top level heading here will be subheading benath acknowledgement section
-
-#lorem(30)
-
+Special thanks to #link("https://kurzgesagt.org/")[Kurzgesagt] for inspiring the thesis' topic in their video "#link("https://www.youtube.com/watch?v=8qQW4LTWgtc&pp=0gcJCRMMAYcqIYzv")[Why Earth Sucks Compared to the Planet Hestia]".

@@ -1,5 +1,7 @@
 = Introduction
 
+== Motivation
+
 When we look at nature, we see an incredibly complex interplay of countless animal and plant species. They prey on one another, compete for space, adapt to temperatures, and change the world around them simply by existing. This process, known as evolution, has shaped our Earth over billions of years. However, modern science faces a fundamental problem: we cannot put an entire planet into a laboratory. If we want to understand how a lifeless rock turned into a green, oxygen-rich world full of life, we run into an issue of time. Real evolution is far too slow to be observed in real-time.
 
 This is exactly where modern bioinformatics comes into play. The overarching goal of this research field is to move evolution into the computer. If we can program realistic virtual worlds, we can simulate millions of years of Earth's history in a single afternoon. This is not just a theoretical game; it has enormous practical value for the real world. By understanding the fundamental rules of how entire ecosystems build up or collapse, we can better predict how our modern environment will react to dramatic changes—whether caused by global climate change, invasive species, or pollution. We are essentially creating a "digital twin" of ecological networks to test the breaking points of life.
@@ -13,3 +15,7 @@ Furthermore, this thesis addresses a highly fascinating core question: What actu
 To realize this ambitious project, standard programming is not enough. The simulation is written in the modern, high-performance programming language Rust. Additionally, to ensure that the computer knows how the millions of populations should behave realistically, advanced mathematics and techniques from the field of artificial intelligence are utilized in the background. This AI does not actively control the simulation during runtime; rather, it is used beforehand to translate the extremely complex biological rules into simple, highly efficient mathematical formulas.
 
 In summary, this thesis combines biology, environmental physics, and cutting-edge software engineering. It provides a computational tool to make the complex, often invisible gears of macroevolution tangible, helping us understand why our planet's biodiversity looks the way it does today—and how quickly it can collapse when the rules of nature change.
+
+== Informatics Relevancy
+
+== Biological Relevancy
