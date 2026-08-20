@@ -19,3 +19,8 @@ In summary, this thesis combines biology, environmental physics, and cutting-edg
 == Informatics Relevancy
 
 == Biological Relevancy
+
+== Hypothesis
+
+#math.alpha\-Diversity \~ #math.gamma\-Diversity
+

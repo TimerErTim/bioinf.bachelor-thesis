@@ -5,4 +5,5 @@
   AI: "Artificial Intelligence",
   TaNa: [Tangled Nature],
   MARL: [Multi-Agent Reinforcement Learning],
+  ABM: [Agent-Based Modeling],
 )

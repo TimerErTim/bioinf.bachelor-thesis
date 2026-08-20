@@ -1,14 +1,45 @@
 = Methodology
 
-== Cellular Automata
+== Environment Simulation
 
-== Population-level Agents
+Eucledian simulation (discrete timesteps)
+Grid-based, every cell has environment state
+- Gases amounts
+  - $0_2$
+  - $C O_2$
+  - $C H_4$
+  - $H_2 O$
+  - ...
+- Temperature
+- Light
+- ...
 
-== Homeostatic Reinforcement Learning
+There are global environment parameters such as:
+- Gravity
+- Length of day and night
+- Axis tilt
+- ...
 
-=== Lotka-Volterra-Dynamiken
+=== Cellular Automata
 
-== Selbstüberwachtes MARL
+Every cell's environment state is updated based on the state of the neighboring cells. Pressure equalization is simulated by diffusion of the gases.
+
+== Agent Representation
+
+Every agent represents a single species/population. It has different attributes:
+- ...
+
+A cell holds a list of species and their amounts present in the cell.
+
+=== Definition of a single species
+
+Evolutionary lineage with similar enough traits to meaningfully differ from other species.
+
+== Approaches to Agent Control
+
+How to update the population's attributes, specifically amount present and evolution over time? Good question... further research needed.
+
+== Self-Supervised MARL
 
 Wenn biologische Organismen in eine völlig neue Umgebung geworfen werden, haben sie keinen zentralen "Score", den sie optimieren. Sie werden durch intrinsische Reize gesteuert. In dezentralen MARL-Systemen lässt sich das abbilden, indem man Agenten nicht für ein externes Ziel belohnt, sondern für die Informationsverarbeitung.
 

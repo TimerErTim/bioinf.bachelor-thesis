@@ -1,5 +1,84 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/mkdjr/hayagriva/refs/heads/main/hayagriva.schema.json
-# This is a hayagriva bibliography file. For more information, see documentation at
-# https://github.com/typst/hayagriva/blob/main/docs/file-format.md
+
+src-homeostatic-rl:
+  type: article
+  note: |
+    License: CC BY 4.0
+  author:
+  - Laurençon, Hugo
+  - Segerie, Charbel-Raphael
+  - Lussange, Johann
+  - Gutkin, Boris
+  date: 2021-09
+  title: Continuous Homeostatic Reinforcement Learning for Self-Regulated Autonomous Agents
+  serial-number:
+    doi: 10.48550/arXiv.2109.06580
+
+src-macroevolutionary-trends-2025:
+  type: article
+  note: |
+    License: CC BY 4.0
+  author:
+  - Latorre, R
+  - Brun-Usan, M
+  - Fernández-Lázaro, G
+  date: 2025-11-06
+  title: |
+    Simulating macroevolutionary trends and open-ended evolution with a novel mechanistic multi-level approach
+  serial-number:
+    doi: 10.1371/journal.pone.0335033
+  parent:
+    type: periodical
+    title: PLoS One
+    volume: 20
+    issue: 11
+  editor:
+    - Tzen-Yuh Chiang
+
+src-predpreyggrass-madrl:
+  type: repository
+  title: PredPreyGrass
+  author:
+  - HBP1969
+  date: 2026-05-17
+  edition: 1.0.0
+  url: 
+    value: https://www.comses.net/codebases/0c362544-c7cf-4498-b7d7-6ef8f6be5960/releases/1.0.0/
+    date: 2026-08-21
+  archive: CoMSES Computational Model Library
+
+src-ecotwin-strannegard-2025:
+  type: article
+  note: |
+    License: CC BY 4.0
+  author:
+  - Strannegård, Claes
+  - Palak, Michał
+  - Emgsner, Niklas
+  - Stocco, Alice
+  - Antonelli, Alexandre
+  - Silvestro, Daniele
+  date: 2025-06
+  title: Predicting Ecosystem Resilience Using Multi-Agent Reinforcement Learning
+  abstract: |
+    Twin models of natural ecosystems hold great promise for informing real-world decisions on sustainable land use and biodiversity conservation. However, existing simulations of animal behavior often rely on manually crafted rules, limiting their scalability and practical utility. Here, we present a flexible and scalable agent-based modeling approach that uses reinforcement learning---instead of hand-coded rules---to simulate animal behavior. We validate this approach across ten alpine ecosystems featuring wolves, chamois, and vegetation.By comparing model outputs with empirical data, we show that the simulations reproduce realistic ecological and behavioral patterns, including population dynamics, life history traits, and social interactions. We then use the model to assess ecosystem resilience under scenarios of habitat degradation, game hunting, and heat stress. Our framework paves the way for realistic simulations advancing our ability to predict ecosystem responses to disturbance and tipping points leading to biodiversity loss, in order to support conservation planning and guide the sustainable use of natural resources.
+  serial-number:
+    doi: 10.1101/2025.06.07.658424
 
 
+src-agentbased-populationbased-2012:
+  type: article
+  author:
+    - Bosse, Tibor
+    - Jaffry, Syed Waqar
+    - Siddiqui, Fahad
+    - Treur, Jan
+  date: 2012-07
+  title: Comparative Analysis of Agent-Based and Population-Based Modelling in Epidemics and Economics
+  parent:
+    type: periodical
+    title: Multi-Agent and Grid Systems
+    volume: 8
+    page-range: 223-255
+  serial-number:
+    doi: 10.3233/MGS-2012-0193

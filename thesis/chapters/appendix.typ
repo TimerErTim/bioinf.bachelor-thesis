@@ -5,6 +5,8 @@
 = External Resources
 
 - GitHub Repository: https://github.com/TimerErTim/bioinf.bachelor-thesis
+- Latorre et al. (2025) Data Repository: https://github.com/rlatorre-uam/EcoEvoData
+- PredPreyGrass: https://github.com/doesburg11/PredPreyGrass
 
 = Source Codes
 
