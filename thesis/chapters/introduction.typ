@@ -16,9 +16,9 @@ To realize this ambitious project, standard programming is not enough. The simul
 
 In summary, this thesis combines biology, environmental physics, and cutting-edge software engineering. It provides a computational tool to make the complex, often invisible gears of macroevolution tangible, helping us understand why our planet's biodiversity looks the way it does today—and how quickly it can collapse when the rules of nature change.
 
-== Informatics Relevancy
+== Research Questions
 
-== Biological Relevancy
+== Goals
 
 == Hypothesis
 

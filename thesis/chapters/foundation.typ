@@ -1,5 +1,9 @@
 = Foundational works
 
+== Algorithms
+
+== Frameworks
+
 == Tierra <tierra-introduction>
 
 https://en.wikipedia.org/wiki/Tierra_(computer_simulation)
