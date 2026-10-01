@@ -12,15 +12,43 @@ A central element of this simulation is the realization that life does not merel
 
 Furthermore, this thesis addresses a highly fascinating core question: What actually happens when life has it "too easy"? Our hypothesis is that under perfect global living conditions—meaning it is warm everywhere, there is plenty of food, and there are no extreme environmental barriers—the absolute biodiversity on the planet paradoxically decreases rather than increases. If nature does not force species to specialize in certain harsh niches, so-called "generalists" emerge. These are super-species that can survive almost anywhere. They spread unhindered across the globe and ultimately outcompete all other, weaker species. While there might be many animals in one specific location, looking at the planet as a whole, every region looks exactly the same. This theory of biological homogenization will be put to the test through the simulation.
 
-To realize this ambitious project, standard programming is not enough. The simulation is written in the modern, high-performance programming language Rust. Additionally, to ensure that the computer knows how the millions of populations should behave realistically, advanced mathematics and techniques from the field of artificial intelligence are utilized in the background. This AI does not actively control the simulation during runtime; rather, it is used beforehand to translate the extremely complex biological rules into simple, highly efficient mathematical formulas.
+To realize this ambitious project, standard programming is not enough. The simulation is written in the modern, high-performance programming language Rust. Additionally, to ensure that the computer knows how the millions of populations should behave realistically, techniques from the field of artificial intelligence are utilized: instead of training a custom reinforcement learning model, the interaction decisions between populations---how a population reacts to its environment and to other species---are delegated to small, open-source decision models of the "Jev" type, which answer typed questions with calibrated probabilities in a single forward pass. The opposite direction, in which populations actively reshape their environment, is deliberately kept strictly rule-based.
 
 In summary, this thesis combines biology, environmental physics, and cutting-edge software engineering. It provides a computational tool to make the complex, often invisible gears of macroevolution tangible, helping us understand why our planet's biodiversity looks the way it does today—and how quickly it can collapse when the rules of nature change.
 
-== Research Questions
+== Research Questions <research-questions>
+
+#grid(
+  columns: (auto, 1fr),
+  inset: (y: 0.65em),
+  row-gutter: 0.5em,
+  align: (left, left),
+  [*RQ1*\ Research Question 1],
+  [*How can species-to-species and environment-to-species interaction be approximated at scale without training a custom reinforcement learning model?*
+
+    Instead of training a bespoke RL policy, population-level interaction decisions are answered by small, open-source, typesafe decision models (so-called "System 1" decision models, e.g. JevK5 or a fine-tuned variant of Laya). These models receive the state of a cell and a set of typed questions (yes/no, choice, score) and return calibrated probabilities in a single forward pass, without generating text.],
+
+  [*RQ2*],
+  [*How can the reverse direction, species-to-environment interaction, be captured?*
+
+    Species actively reshape their environment (e.g. oxygen production during the Great Oxidation Event). This direction is deliberately modeled as hard, deterministic rule sets---to be defined---rather than learned behavior.],
+
+  [*RQ3*\ Research Question 3],
+  [*How far do such generalistic decision models transfer to ecological interaction decisions, and what does their behavior reveal about the biological or systems-level understanding these models have acquired?*
+
+    A secondary, exploratory question: since these models are trained on general-purpose decision data rather than ecological domain data, their applicability in this domain is not self-evident. Deviations and failure patterns are of independent interest, as they hint at what high-level biological or systems understanding such generalistic models actually possess.],
+)
 
 == Goals
+
+- Development of a scalable, grid-based planetary simulation in Rust. The environment is updated by physical rules, species populations act as agents.
+- Approximation of species-to-species and environment-to-species interaction via open-source, typesafe decision models (JevK5, fine-tuned Laya) instead of a custom RL model.
+- Hard rule-based modeling of species-to-environment interaction.
+- Evaluation of whether the simulation reproduces plausible macroevolutionary dynamics (e.g. the Great Oxidation Event) and the biodiversity homogenization hypothesis.
 
 == Hypothesis
 
 #math.alpha\-Diversity \~ #math.gamma\-Diversity
+
+Additionally, as a secondary expectation tied to RQ3: the generalistic decision models will be applicable to ecological interaction decisions only to a limited degree---expect transfer gaps and characteristic failure patterns that reveal how much (or how little) high-level biological and systems understanding such models actually encode.
 

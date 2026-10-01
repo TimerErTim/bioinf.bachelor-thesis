@@ -66,6 +66,36 @@ src-ecotwin-strannegard-2025:
     doi: 10.1101/2025.06.07.658424
 
 
+src-jevk5:
+  type: repository
+  title: JevK5 v0.3---open-weight Jev alternative
+  author:
+    - Serikbay, Ali
+  url:
+    value: https://huggingface.co/alibiserikbay/JevK5
+    date: 2026-09
+  archive: Hugging Face
+
+src-laya:
+  type: repository
+  title: Laya---open-source non-autoregressive System 1 decision model
+  author:
+    - ConvAI Innovations
+  url:
+    value: https://huggingface.co/convaiinnovations/laya
+    date: 2026
+  archive: Hugging Face
+
+src-jevbench:
+  type: article
+  title: JevBench 1.5
+  author:
+    - Standhartinger, F.
+  url:
+    value: https://github.com/fstandhartinger/jevbench
+    date: 2026
+  archive: GitHub
+
 src-agentbased-populationbased-2012:
   type: article
   author:

@@ -17,7 +17,7 @@
   2. Each cell holds agents that represent whole species populations, not individual organisms.
 
   Time step updates of concept 1 are based on physical laws.
-  Time step updates of concept 2 are based on an approximative MARL model.
+  Time step updates of concept 2 are based on open-source typesafe decision models (JevK5, fine-tuned Laya) instead of a custom reinforcement learning model.
   ```,
   keywords: (
     "simulation",
