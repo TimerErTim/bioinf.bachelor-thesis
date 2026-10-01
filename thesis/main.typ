@@ -2,7 +2,7 @@
 // Please submit any issues or feature requests to https://github.com/TimerErTim/hagenberg-thesis-typst/issues
 // Refer to the documentation at https://github.com/TimerErTim/hagenberg-thesis-typst/tree/main/easy-hgb-thesis-manual.pdf for more information.
 
-#import "@preview/easy-hgb-thesis:0.2.1": WORK_TYPES, full-thesis, titlepage
+#import "@preview/easy-hgb-thesis:0.2.2": WORK_TYPES, full-thesis, titlepage
 
 #let title = sys.inputs.at("title", default: "TITLE MISSING")
 
