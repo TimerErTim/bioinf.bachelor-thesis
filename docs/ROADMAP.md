@@ -13,15 +13,15 @@ Progress tracker for the framework. Check off items and append a dated line to t
 
 ### M1 — Vertical slice
 
-- [ ] Workspace restructure: `crates/*` + `runnables/*` members, workspace deps, `[workspace.lints]`
-- [ ] `pbma-model`: `EnvState` (O2, CO2, CH4, H2O, temperature), `Species`, `Population`, `GlobalParams`
-- [ ] `pbma-grid`: `Grid<T>` chunked dense storage, coord math, Von Neumann/Moore neighborhoods, double buffer
-- [ ] `pbma-core`: port traits (`EnvironmentStep`, `PopulationBehavior`, `MigrationPolicy`, `Rng`, `Recorder`), `SpeciesRegistry` (slotmap), `TickDriver`, errors
-- [ ] `pbma-sim`: diffusion CA (mass-conserving), population growth/decline, overcrowding migration
-- [ ] `pbma-cli`: config (grid size, seed, ticks) -> run -> CSV metrics
-- [ ] Tests: golden-trace determinism, gas-mass conservation property, population bookkeeping
-- [ ] Bench: criterion tick bench at ~1M cells
-- [ ] Thesis: `implementation.typ` reflects kernel/grid/sim architecture
+- [x] Workspace restructure: `crates/*` + `runnables/*` members, workspace deps, `[workspace.lints]`
+- [x] `pbma-model`: `EnvState` (O2, CO2, CH4, H2O, temperature), `Species`, `Population`, `GlobalParams`
+- [x] `pbma-grid`: `Grid<T>` chunked dense storage, coord math, Von Neumann/Moore neighborhoods, double buffer
+- [x] `pbma-core`: port traits (`EnvironmentStep`, `PopulationBehavior`, `MigrationPolicy`, `Rng`, `Recorder`), `SpeciesRegistry` (slotmap), `TickDriver`, errors
+- [x] `pbma-sim`: diffusion CA (mass-conserving), population growth/decline, overcrowding migration
+- [x] `pbma-cli`: config (grid size, seed, ticks) -> run -> CSV metrics
+- [x] Tests: golden-trace determinism, gas-mass conservation property, population bookkeeping
+- [x] Bench: criterion tick bench at ~1M cells
+- [x] Thesis: `implementation.typ` reflects kernel/grid/sim architecture
 
 ### M2 — Behavior depth
 
@@ -48,3 +48,4 @@ Progress tracker for the framework. Check off items and append a dated line to t
 ## Progress log
 
 - 2026-10-02: M0 complete. Architecture, guidelines, roadmap, agent contract written.
+- 2026-10-02: M1 complete. Multi-crate workspace (model, core, grid, sim + cli/gui runnables). Kernel ports, slotmap registry, tick driver; chunked grid with double buffer; diffusion CA, logistic behavior, overcrowding migration; headless CLI with CSV metrics. Integration tests: golden-trace determinism, gas-mass conservation, migration bookkeeping. Bench: 1M-cell tick ~224 ms (sequential baseline). Thesis implementation chapter written in sync; methodology chapter extended with offline-training/runtime-formula section.
