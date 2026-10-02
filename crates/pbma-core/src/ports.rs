@@ -2,6 +2,9 @@
 
 use pbma_model::{EnvState, GlobalParams, Population, SpeciesId};
 
+use crate::World;
+use crate::registry::SpeciesRegistry;
+
 /// Context handed to phases for one cell.
 ///
 /// Read-only view of the previous tick plus the species populations present
@@ -21,6 +24,9 @@ pub struct CellContext<'a> {
     pub populations: &'a [(SpeciesId, Population)],
     /// Global parameters, constant for the run.
     pub params: &'a GlobalParams,
+    /// Live species table. Populations may reference stale (extinct) ids;
+    /// phases resolve traits through this registry.
+    pub registry: &'a SpeciesRegistry,
 }
 
 /// Updates the environment of one cell (cellular automaton step).
@@ -45,7 +51,34 @@ pub struct BehaviorDelta {
 /// pre-compiled formulas; the kernel contract stays identical.
 pub trait PopulationBehavior {
     /// Computes the net population delta for one species in one cell.
+    ///
+    /// `species` may be a stale id (its lineage went extinct mid-tick);
+    /// implementations should treat unresolved ids as zero contribution.
     fn update(&self, species: SpeciesId, cell: &CellContext<'_>) -> BehaviorDelta;
+}
+
+/// Spawns new species and prunes extinct ones between ticks.
+///
+/// Evolution sits outside the per-cell phases because it operates on the
+/// global species table, not on single cells. All decisions must derive
+/// from deterministic inputs (world state, explicit rng) to preserve
+/// reproducibility.
+pub trait EvolutionEngine {
+    /// Spawns variant lineages of surviving species.
+    ///
+    /// Called once per tick after the migration phase. Returns the new
+    /// species; the kernel inserts them into the registry. The returned
+    /// parent ids must still be live.
+    fn spawn_variants(
+        &mut self,
+        world: &World,
+        rng: &mut dyn Rng,
+        out: &mut Vec<(pbma_model::SpeciesId, pbma_model::Species)>,
+    );
+
+    /// Reports species ids that went extinct this tick (no populations
+    /// anywhere in the world). The kernel removes them from the registry.
+    fn prune_extinct(&mut self, world: &World, out: &mut Vec<pbma_model::SpeciesId>);
 }
 
 /// A migration flux: individuals moving from one cell to a neighbor.

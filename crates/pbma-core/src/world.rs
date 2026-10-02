@@ -144,6 +144,8 @@ pub struct TickDriver {
     migration: Box<dyn MigrationPolicy>,
     recorder: Box<dyn Recorder>,
     flux_scratch: Vec<crate::ports::Flux>,
+    evolution: Option<Box<dyn crate::ports::EvolutionEngine>>,
+    rng: Option<Box<dyn crate::ports::Rng>>,
 }
 
 impl TickDriver {
@@ -161,14 +163,32 @@ impl TickDriver {
             migration,
             recorder,
             flux_scratch: Vec::new(),
+            evolution: None,
+            rng: None,
         }
+    }
+
+    /// Installs an evolution engine and its deterministic rng source.
+    ///
+    /// Without an engine, no speciation or extinction pruning happens and
+    /// species live for the whole run.
+    pub fn with_evolution(
+        &mut self,
+        evolution: Box<dyn crate::ports::EvolutionEngine>,
+        rng: Box<dyn crate::ports::Rng>,
+    ) -> &mut Self {
+        self.evolution = Some(evolution);
+        self.rng = Some(rng);
+        self
     }
 
     /// Runs one tick against `world`.
     ///
     /// Phase order: environment step, population behavior, migration apply,
     /// recorder. All phases read the frozen previous snapshot; writes land
-    /// in fresh buffers first (determinism rule 1).
+    /// in fresh buffers first (determinism rule 1). If an evolution engine
+    /// is installed, variant species spawn and extinct species are pruned
+    /// after the migration phase.
     pub fn tick(&mut self, world: &mut World, tick: u64) {
         let width = world.width();
         let height = world.height();
@@ -191,6 +211,7 @@ impl TickDriver {
                     neighbors,
                     populations: &cell.populations,
                     params: world.params(),
+                    registry: &world.registry,
                 };
                 self.environment.step(&ctx)
             })
@@ -211,6 +232,7 @@ impl TickDriver {
                     neighbors,
                     populations: &cell.populations,
                     params: world.params(),
+                    registry: &world.registry,
                 };
                 cell.populations
                     .iter()
@@ -235,6 +257,7 @@ impl TickDriver {
                 neighbors,
                 populations: &cell.populations,
                 params: world.params(),
+                registry: &world.registry,
             };
             self.migration.fluxes(&ctx, &mut self.flux_scratch);
         }
@@ -298,6 +321,23 @@ impl TickDriver {
         // Publish the environment buffer.
         for (cell, env) in world.cells.iter_mut().zip(next_env) {
             cell.env = env;
+        }
+
+        // Evolution: prune extinct species, spawn variants. Order fixed for
+        // determinism; both steps see the post-migration world.
+        if let (Some(evolution), Some(rng)) = (&mut self.evolution, self.rng.as_deref_mut()) {
+            let mut extinct = Vec::new();
+            evolution.prune_extinct(world, &mut extinct);
+            let mut variants = Vec::new();
+            evolution.spawn_variants(world, rng, &mut variants);
+            for id in extinct {
+                world.registry.remove(id);
+            }
+            for (parent, species) in variants {
+                // registry insert errors (duplicate name) are skipped:
+                // engine contract says names are unique per spawn batch.
+                let _ = world.registry.insert(species).map(|id| (parent, id));
+            }
         }
 
         // Phase 4: record metrics.
