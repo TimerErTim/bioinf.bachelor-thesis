@@ -18,7 +18,15 @@ pub mod migration;
 /// Metrics recorder.
 pub mod recorder;
 
+/// Deterministic seedable random number generator.
+pub mod rng;
+
+/// Deterministic evolution: variant spawning and extinction pruning.
+pub mod evolution;
+
 pub use behavior::LogisticBehavior;
 pub use diffusion::DiffusionStep;
+pub use evolution::VariationEngine;
 pub use migration::OvercrowdingMigration;
 pub use recorder::VecRecorder;
+pub use rng::SplitMixRng;
