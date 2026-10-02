@@ -1,0 +1,21 @@
+[package]
+name = "pbma-grid"
+version.workspace = true
+edition.workspace = true
+license-file.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+pbma-core.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
+
+[[bench]]
+name = "neighborhood"
+harness = false
+
+[lints]
+workspace = true
