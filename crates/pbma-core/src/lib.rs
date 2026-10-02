@@ -1,14 +1,24 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+//! PBMA kernel: world state, tick orchestration, and ports.
+//!
+//! The kernel knows *when* phases run, adapters know *how* they run. All
+//! simulation behavior is injected through the port traits in [`ports`];
+//! the kernel never depends on concrete adapters. This is the API
+//! downstream consumers (CLI, GUI, experiment tooling) build against.
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#![deny(missing_docs)]
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+/// Error types shared across the kernel.
+pub mod error;
+
+/// Port traits: the hexagonal boundary of the kernel.
+pub mod ports;
+
+/// Species registry backed by a slotmap with generational keys.
+pub mod registry;
+
+/// World state and tick orchestration.
+pub mod world;
+
+pub use error::{Error, Result};
+pub use registry::{SpeciesRegistry, SpeciesRegistryIter};
+pub use world::{TickDriver, World};
