@@ -76,3 +76,7 @@ Wenn biologische Organismen in eine völlig neue Umgebung geworfen werden, haben
 
 - Curiosity (Neugier) und Vorhersagefehler: Der Agent erhält eine Belohnung (Forward Prediction Loss), wenn er Zustände mit hoher Unsicherheit erkundet oder wenn er lernt, die Konsequenzen seiner Aktionen besser vorherzusagen. Er lernt also kontinuierlich, wie die Umwelt funktioniert, wodurch sich flexible Überlebensstrategien von ganz allein entwickeln.
 - Sozialer Einfluss (Social Influence): Agenten werden dafür belohnt, dass ihre Aktionen das Verhalten oder den Zustand anderer Spezies vorhersehbar beeinflussen. Dies fördert das spontane Entstehen von realistischen inter-spezifischen Rollen (wie Prädator, Beute oder Symbiont), da die Spezies lernen, aufeinander zu reagieren, um ein soziales beziehungsweise ökologisches Gleichgewicht zu finden.
+
+== Vom trainierten Modell zur Laufzeitformel
+
+Die in dieser Arbeit entwickelte Simulationsarchitektur trennt bewusst zwischen Training und Laufzeit. Verhaltensmodelle werden offline trainiert; zur Laufzeit liegt ihr Ergebnis nicht als neuronales Netz, sondern als explizite, evaluierbare Formel vor, die die Verhaltensphase pro Zelle auswertet. Die Softwarearchitektur unterstützt diesen Ansatz direkt: das Verhalten wird über ein Port-Interface injiziert, sodass ein trainiertes Modell und eine handgeschriebene Näherungsformel dieselbe Schnittstelle bedienen und sich gegenseitig ersetzen können, ohne dass der Simulationskern geändert werden muss.

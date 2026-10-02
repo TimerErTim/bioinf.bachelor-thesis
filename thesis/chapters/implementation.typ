@@ -75,6 +75,42 @@ These rules are backed by tests: a golden-trace test asserts that the same
 seed and configuration produce identical metric hashes, and a property test
 asserts gas mass conservation under diffusion.
 
+== Population behavior and migration
+
+The default behavior adapter implements logistic growth: each population
+grows toward the carrying capacity of its cell, which scales with light
+availability, and the growth rate is modulated by a temperature fitness
+curve that falls off linearly beyond a tolerance window around the optimal
+temperature. Migration treats overcrowding as emigration pressure: when the
+total density of a cell exceeds a threshold, the excess fraction is split
+evenly over the four cardinal directions and emitted as migration fluxes.
+The kernel applies these fluxes only after all cells have been processed, so
+a population can never read a half-migrated neighbor.
+
+== Verification and benchmarks
+
+The vertical slice is verified on three levels. Unit tests cover the domain
+rules of each crate, for example saturating arithmetic, registry staleness,
+and chunk bookkeeping. Integration tests assert the scientific invariants:
+a golden-trace test proves that identical seeds and configurations reproduce
+identical metric hashes, a conservation test proves that diffusion neither
+creates nor destroys gas mass, and a bookkeeping test proves that migration
+moves population between cells without creating or destroying it. Finally,
+a benchmark simulates a 1000 × 1000 cell world (one million cells) and
+measures the per-tick runtime, providing the baseline that later parallel
+optimizations must improve upon.
+
+== Extensibility contract
+
+Downstream consumers extend the framework by implementing the kernel ports
+rather than modifying it. A new environment model, a behavior formula
+derived from offline reinforcement learning, or an alternative migration
+policy each plug in as an adapter behind the same trait boundary; the kernel
+and the existing binaries remain untouched. This is the property that makes
+the framework a product in its own right rather than a one-off simulation
+script.
+
+
 == Diffusion cellular automaton
 
 The default environment step implements gas diffusion as pressure
