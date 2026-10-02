@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/*", "runnables/pbma-gui"]
+members = ["crates/*", "runnables/*"]
 resolver = "2"
 
 [workspace.package]
@@ -9,8 +9,29 @@ license-file = "LICENSE"
 authors = ["Tim Peko <timerertim@gmail.com>"]
 repository = "https://github.com/TimerErTim/bioinf.bachelor-thesis"
 
-
 [workspace.dependencies]
+pbma-model = { path = "crates/pbma-model" }
+pbma-core = { path = "crates/pbma-core" }
+pbma-grid = { path = "crates/pbma-grid" }
+pbma-sim = { path = "crates/pbma-sim" }
+
+slotmap = "1"
+rayon = "1"
+thiserror = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.9"
+criterion = "0.7"
+
+[workspace.lints.rust]
+missing_docs = "deny"
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+unwrap_used = "warn"
+expect_used = "warn"
+panic = "warn"
+undocumented_unsafe_blocks = "deny"
 
 [profile.release]
 panic = "abort"
@@ -18,3 +39,6 @@ codegen-units = 1
 lto = true
 opt-level = 3
 strip = true
+
+[profile.bench]
+inherits = "release"

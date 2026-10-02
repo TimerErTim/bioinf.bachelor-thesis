@@ -1,5 +1,5 @@
 [package]
-name = "pbma-core"
+name = "pbma-sim"
 version.workspace = true
 edition.workspace = true
 license-file.workspace = true
@@ -7,9 +7,9 @@ authors.workspace = true
 repository.workspace = true
 
 [dependencies]
+pbma-core.workspace = true
+pbma-grid.workspace = true
 pbma-model.workspace = true
-slotmap.workspace = true
-thiserror.workspace = true
 
 [lints]
 workspace = true
