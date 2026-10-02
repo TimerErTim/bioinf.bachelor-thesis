@@ -78,6 +78,7 @@ mod tests {
         env: &'a EnvState,
         neighbors: [&'a EnvState; 4],
         params: &'a pbma_model::GlobalParams,
+        registry: &'a pbma_core::SpeciesRegistry,
     ) -> CellContext<'a> {
         CellContext {
             x: 1,
@@ -86,6 +87,7 @@ mod tests {
             neighbors,
             populations: &[],
             params,
+            registry,
         }
     }
 
@@ -97,8 +99,9 @@ mod tests {
             light: 0.5,
         };
         let params = test_params();
+        let registry = pbma_core::SpeciesRegistry::new();
         let step = DiffusionStep::new(0.2);
-        let next = step.step(&ctx(&env, [&env; 4], &params));
+        let next = step.step(&ctx(&env, [&env; 4], &params, &registry));
         assert_eq!(next, env);
     }
 
@@ -113,11 +116,22 @@ mod tests {
         env_b.set_gas(Gas::O2, Amount::new(8.0));
 
         let params = test_params();
+        let registry = pbma_core::SpeciesRegistry::new();
         let step = DiffusionStep::new(0.2);
 
         // two-cell pair, symmetric exchange
-        let na = step.step(&ctx(&env_a, [&env_b, &env_b, &env_b, &env_b], &params));
-        let nb = step.step(&ctx(&env_b, [&env_a, &env_a, &env_a, &env_a], &params));
+        let na = step.step(&ctx(
+            &env_a,
+            [&env_b, &env_b, &env_b, &env_b],
+            &params,
+            &registry,
+        ));
+        let nb = step.step(&ctx(
+            &env_b,
+            [&env_a, &env_a, &env_a, &env_a],
+            &params,
+            &registry,
+        ));
 
         let before = env_a.gas(Gas::O2).value() * 5.0 + env_b.gas(Gas::O2).value() * 5.0;
         let after = na.gas(Gas::O2).value() * 5.0 + nb.gas(Gas::O2).value() * 5.0;
