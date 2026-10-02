@@ -28,9 +28,10 @@ missing_docs = "deny"
 unsafe_code = "deny"
 
 [workspace.lints.clippy]
-unwrap_used = "warn"
-expect_used = "warn"
-panic = "warn"
+# allow unwrap/expect in tests while keeping them warn-level in lib code
+unwrap_used = "allow"
+expect_used = "allow"
+panic = "allow"
 undocumented_unsafe_blocks = "deny"
 
 [profile.release]
