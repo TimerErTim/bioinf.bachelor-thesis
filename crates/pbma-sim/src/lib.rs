@@ -12,6 +12,9 @@ pub mod diffusion;
 /// Population growth/decline behavior.
 pub mod behavior;
 
+/// RL-surrogate closed-form behavior (stand-in for a learned policy).
+pub mod formula;
+
 /// Overcrowding-driven migration.
 pub mod migration;
 
@@ -27,6 +30,7 @@ pub mod evolution;
 pub use behavior::LogisticBehavior;
 pub use diffusion::DiffusionStep;
 pub use evolution::VariationEngine;
+pub use formula::FormulaBehavior;
 pub use migration::OvercrowdingMigration;
 pub use recorder::VecRecorder;
 pub use rng::SplitMixRng;
