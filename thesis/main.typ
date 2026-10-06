@@ -3,6 +3,7 @@
 // Refer to the documentation at https://github.com/TimerErTim/hagenberg-thesis-typst/tree/main/easy-hgb-thesis-manual.pdf for more information.
 
 #import "@preview/easy-hgb-thesis:0.2.2": WORK_TYPES, full-thesis, titlepage
+#import "style.typ": style-document
 
 #let title = sys.inputs.at("title", default: "TITLE MISSING")
 
@@ -57,6 +58,17 @@
   bibl: bibliography("bib.yaml"), // Can be replaced with a BibLaTex file,
   abbreviations: abbr,
 
+  document-style: it => {
+    set text(font: "Libertinus Serif")
+    let sans-fonts = state("_eht-sans-fonts")
+    sans-fonts.update(("Libertinus Sans",))
+    show raw: set text(font: "JetBrains Mono")
+    show math.equation: set text(font: "Libertinus Math")
+
+    show: style-document
+
+    it
+  },
   content-style: it => {
     show table.cell.where(y: 0): strong
     show: apply-link-style
