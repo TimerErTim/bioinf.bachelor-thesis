@@ -15,40 +15,38 @@ Framework for the bachelor thesis "A population-based multi-agent approach for s
 
 ```
 crates/
-  pbma-model   pure domain types, no dependencies on other pbma crates
-  pbma-core    kernel: World state, TickDriver, port traits, SpeciesRegistry, errors
-  pbma-grid    grid cell management: coords, chunked dense storage, neighborhoods
-  pbma-sim     default adapters: diffusion CA, population behavior, migration
+  pbma-core    kernel: domain types, grid storage, ports, World state, TickDriver,
+               SpeciesRegistry, errors
+  pbma-sim     default adapters: diffusion CA, population behavior, migration, evolution
 runnables/
   pbma-cli     headless runner: config -> tick loop -> CSV metrics
   pbma-gui     visualization consuming kernel snapshot/telemetry APIs
 ```
 
+`pbma-core` intentionally contains the domain types and grid storage as
+modules (`model`, `grid`) rather than separate crates: the machinery is
+lightweight, downstream implementors depend on the ports in core anyway,
+and one kernel crate keeps the public surface coherent.
+
 Dependency direction (hexagonal / ports & adapters):
 
 ```mermaid
 flowchart LR
-    model[pbma-model domain types]
-    core[pbma-core kernel + ports]
-    grid[pbma-grid storage]
+    core[pbma-core kernel + model + grid + ports]
     sim[pbma-sim phase adapters]
     cli[pbma-cli]
     gui[pbma-gui]
     cli --> core
     cli --> sim
     gui --> core
-    sim --> grid
     sim --> core
-    grid --> core
-    core --> model
 ```
 
 Rules:
 
-- `pbma-model` depends on nothing pbma.
-- `pbma-core` defines all ports (traits). It must not depend on `pbma-grid` or `pbma-sim`.
-- Adapters (`pbma-grid`, `pbma-sim`) may depend on `core` and `model`, never the reverse.
-- Runnables depend on everything and are the only place where concrete adapters get wired together.
+- `pbma-core` defines all ports (traits) and domain types. It must not depend on `pbma-sim`.
+- Adapters (`pbma-sim`) may depend on `pbma-core`, never the reverse.
+- Runnables depend on both and are the only place where concrete adapters get wired together.
 
 ## Kernel design
 
@@ -100,7 +98,7 @@ Enforced by tests: same seed + same config => identical metrics hash (golden tra
 
 ## Grid and parallel execution
 
-- `Grid<T>` in `pbma-grid`: linearized dense storage, fixed chunk size (64x64 target), `width/height` in cells.
+- `Grid<T>` in `pbma-core::grid`: linearized dense storage, fixed chunk size (64x64 target), `width/height` in cells.
 - Neighborhoods: Von Neumann (4) and Moore (8), computed from chunk-local coords with explicit bounds handling at world edges.
 - Double buffering: each tick reads the frozen previous snapshot and writes a fresh buffer, then swaps. Within a phase, work is split per chunk via rayon (`par_chunks_mut`), no shared mutable cell state.
 - Migration: phases emit flux deltas into a per-tick flux buffer keyed by (target cell, species key); fluxes are applied in a separate apply step after computation. This is message-passing between cells without aliasing.
@@ -119,3 +117,4 @@ Enforced by tests: same seed + same config => identical metrics hash (golden tra
 - ADR-3: phase-based tick pipeline with ports. Reason: swap sim rules (and later RL-derived behavior) without touching the kernel; testability.
 - ADR-4: determinism-first parallelism (snapshot + flux buffers, fixed iteration order). Reason: reproducible science runs on many cores.
 - ADR-5: CSV as the first recorder format. Reason: zero-dep, thesis-friendly analysis via any tool; binary formats later if needed.
+- ADR-6: domain types and grid storage live as modules of `pbma-core`, not as separate crates. Reason: downstream implementors depend on the ports in core anyway; a single kernel crate keeps the public surface coherent and avoids artificial version boundaries.

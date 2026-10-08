@@ -1,4 +1,4 @@
-//! PBMA kernel: world state, tick orchestration, and ports.
+//! PBMA kernel: domain types, world state, tick orchestration, and ports.
 //!
 //! The kernel knows *when* phases run, adapters know *how* they run. All
 //! simulation behavior is injected through the port traits in [`ports`];
@@ -6,6 +6,12 @@
 //! downstream consumers (CLI, GUI, experiment tooling) build against.
 
 #![deny(missing_docs)]
+
+/// Domain types: cells, species, populations, global parameters.
+pub mod model;
+
+/// Grid storage and neighborhood coordinates.
+pub mod grid;
 
 /// Error types shared across the kernel.
 pub mod error;
@@ -20,5 +26,8 @@ pub mod registry;
 pub mod world;
 
 pub use error::{Error, Result};
+pub use model::{
+    Amount, EnvState, GASES, Gas, GlobalParams, Population, Species, SpeciesId, SpeciesTraits,
+};
 pub use registry::{SpeciesRegistry, SpeciesRegistryIter};
 pub use world::{TickDriver, World};

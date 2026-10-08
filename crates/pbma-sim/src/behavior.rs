@@ -1,7 +1,7 @@
 //! Population growth/decline behavior.
 
+use pbma_core::model::SpeciesId;
 use pbma_core::ports::{BehaviorDelta, CellContext, PopulationBehavior};
-use pbma_model::SpeciesId;
 
 /// Logistic-style growth driven by per-species traits.
 ///
@@ -70,7 +70,7 @@ impl PopulationBehavior for LogisticBehavior {
 mod tests {
     use super::*;
     use pbma_core::SpeciesRegistry;
-    use pbma_model::{Amount, EnvState, GlobalParams, Population, Species, SpeciesTraits};
+    use pbma_core::model::{Amount, EnvState, GlobalParams, Population, Species, SpeciesTraits};
 
     fn ctx<'a>(
         env: &'a EnvState,

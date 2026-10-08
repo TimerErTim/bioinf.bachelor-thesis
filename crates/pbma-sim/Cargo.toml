@@ -8,8 +8,6 @@ repository.workspace = true
 
 [dependencies]
 pbma-core.workspace = true
-pbma-grid.workspace = true
-pbma-model.workspace = true
 
 [lints]
 workspace = true

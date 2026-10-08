@@ -2,8 +2,8 @@
 
 use std::hash::{Hash, Hasher};
 
+use pbma_core::model::{Amount, EnvState, GlobalParams, Species, SpeciesTraits};
 use pbma_core::{TickDriver, World};
-use pbma_model::{Amount, EnvState, GlobalParams, Species, SpeciesTraits};
 use pbma_sim::{DiffusionStep, LogisticBehavior, OvercrowdingMigration, VecRecorder};
 
 fn params(diffusion: f64) -> GlobalParams {
@@ -35,7 +35,7 @@ fn seeded_world(width: u32, height: u32, diffusion: f64) -> (World, u64) {
         for x in 0..width {
             let cell = &mut world.cells_mut()[(y * width + x) as usize];
             cell.env.set_gas(
-                pbma_model::Gas::O2,
+                pbma_core::model::Gas::O2,
                 Amount::new(21.0 + f64::from(x) + f64::from(y)),
             );
         }
@@ -55,7 +55,7 @@ fn seeded_world(width: u32, height: u32, diffusion: f64) -> (World, u64) {
     for cell in world.cells_mut() {
         cell.populations.push((
             id,
-            pbma_model::Population {
+            pbma_core::model::Population {
                 amount: Amount::new(50.0),
             },
         ));

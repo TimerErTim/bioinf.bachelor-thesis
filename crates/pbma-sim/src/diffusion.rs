@@ -1,7 +1,7 @@
 //! Mass-conserving gas diffusion cellular automaton.
 
+use pbma_core::model::{EnvState, GASES};
 use pbma_core::ports::{CellContext, EnvironmentStep};
-use pbma_model::{EnvState, GASES};
 
 /// Diffuses every gas toward lower concentrations.
 ///
@@ -54,7 +54,7 @@ impl EnvironmentStep for DiffusionStep {
                     net_inflow += (other - own) * self.alpha;
                 }
             }
-            next.set_gas(gas, pbma_model::Amount::new(own + net_inflow));
+            next.set_gas(gas, pbma_core::model::Amount::new(own + net_inflow));
         }
         next
     }
@@ -71,13 +71,13 @@ pub fn total_gas(envs: &[EnvState]) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pbma_model::{Amount, EnvState, Gas};
+    use pbma_core::model::{Amount, EnvState, Gas};
 
     // Helper building a CellContext manually.
     fn ctx<'a>(
         env: &'a EnvState,
         neighbors: [&'a EnvState; 4],
-        params: &'a pbma_model::GlobalParams,
+        params: &'a pbma_core::model::GlobalParams,
         registry: &'a pbma_core::SpeciesRegistry,
     ) -> CellContext<'a> {
         CellContext {
@@ -140,8 +140,8 @@ mod tests {
         assert!(nb.gas(Gas::O2).value() < env_b.gas(Gas::O2).value());
     }
 
-    fn test_params() -> pbma_model::GlobalParams {
-        pbma_model::GlobalParams {
+    fn test_params() -> pbma_core::model::GlobalParams {
+        pbma_core::model::GlobalParams {
             gravity: 9.81,
             day_length_ticks: 240,
             axial_tilt: 0.0,

@@ -7,8 +7,8 @@
 //! shape of the formula interface (frozen cell snapshot in, per-species delta
 //! out) that generated formulas will reuse.
 
+use pbma_core::model::SpeciesId;
 use pbma_core::ports::{BehaviorDelta, CellContext, PopulationBehavior};
-use pbma_model::SpeciesId;
 
 /// Resource saturation rate `k` of the light response
 /// `f_light = 1 - exp(-k * L)`.
@@ -33,7 +33,7 @@ const BASELINE_MORTALITY: f64 = 0.02;
 /// ```
 ///
 /// with the factors (each in [0, 1], so `alpha` lies in `[0, r]`, where `r`
-/// is the [`SpeciesTraits`](pbma_model::SpeciesTraits) `growth_rate`):
+/// is the [`SpeciesTraits`](pbma_core::model::SpeciesTraits) `growth_rate`):
 ///
 /// ```text
 /// f_temp(T)  = exp(-(T - T*)^2 / (2 * sigma^2))
@@ -108,7 +108,7 @@ fn temperature_fitness(temperature: f64, optimal: f64, tolerance: f64) -> f64 {
 mod tests {
     use super::*;
     use pbma_core::SpeciesRegistry;
-    use pbma_model::{Amount, EnvState, GlobalParams, Population, Species, SpeciesTraits};
+    use pbma_core::model::{Amount, EnvState, GlobalParams, Population, Species, SpeciesTraits};
 
     fn ctx<'a>(
         env: &'a EnvState,

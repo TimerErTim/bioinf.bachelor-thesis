@@ -3,9 +3,11 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use pbma_core::model::{
+    Amount, EnvState, GlobalParams, Population, Species, SpeciesId, SpeciesTraits,
+};
 use pbma_core::ports::{EvolutionEngine, Recorder, Rng};
 use pbma_core::{TickDriver, World};
-use pbma_model::{Amount, EnvState, GlobalParams, Population, Species, SpeciesId, SpeciesTraits};
 
 fn params() -> GlobalParams {
     GlobalParams {

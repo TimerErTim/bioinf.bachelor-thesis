@@ -67,18 +67,18 @@ fn main() {
 }
 
 fn run(config: Config) {
-    let params = pbma_model::GlobalParams {
+    let params = pbma_core::model::GlobalParams {
         gravity: 9.81,
         day_length_ticks: 240,
         axial_tilt: 0.0,
         diffusion_coefficient: config.diffusion,
     };
-    let initial = pbma_model::EnvState {
+    let initial = pbma_core::model::EnvState {
         gases: [
-            pbma_model::Amount::new(21.0), // O2
-            pbma_model::Amount::new(0.04), // CO2
-            pbma_model::Amount::ZERO,      // CH4
-            pbma_model::Amount::new(1.0),  // H2O
+            pbma_core::model::Amount::new(21.0), // O2
+            pbma_core::model::Amount::new(0.04), // CO2
+            pbma_core::model::Amount::ZERO,      // CH4
+            pbma_core::model::Amount::new(1.0),  // H2O
         ],
         temperature: config.initial_temperature,
         light: config.initial_light,
@@ -86,9 +86,9 @@ fn run(config: Config) {
     let mut world = World::new(config.width, config.height, initial, params);
 
     // Seed one species evenly across the world.
-    let species = pbma_model::Species {
+    let species = pbma_core::model::Species {
         name: "pioneer".into(),
-        traits: pbma_model::SpeciesTraits {
+        traits: pbma_core::model::SpeciesTraits {
             optimal_temperature: config.initial_temperature,
             temperature_tolerance: 10.0,
             growth_rate: 0.1,
@@ -99,8 +99,8 @@ fn run(config: Config) {
         Ok(id) => id,
         Err(e) => die(&format!("register species: {e}")),
     };
-    let seed_population = pbma_model::Population {
-        amount: pbma_model::Amount::new(10.0),
+    let seed_population = pbma_core::model::Population {
+        amount: pbma_core::model::Amount::new(10.0),
     };
     for cell in world.cells_mut() {
         cell.populations.push((species_id, seed_population));

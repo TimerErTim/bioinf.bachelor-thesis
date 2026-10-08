@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::quantity::Amount;
+use super::quantity::Amount;
 
 /// Chemical species tracked in the environment.
 ///

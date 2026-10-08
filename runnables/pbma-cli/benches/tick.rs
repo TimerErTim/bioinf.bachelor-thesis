@@ -2,8 +2,8 @@
 
 use std::hint::black_box;
 
+use pbma_core::model::{Amount, EnvState, GlobalParams, Population, Species, SpeciesTraits};
 use pbma_core::{TickDriver, World};
-use pbma_model::{Amount, EnvState, GlobalParams, Population, Species, SpeciesTraits};
 use pbma_sim::{DiffusionStep, LogisticBehavior, OvercrowdingMigration, VecRecorder};
 
 /// Builds a 1000x1000 world with one seeded species.

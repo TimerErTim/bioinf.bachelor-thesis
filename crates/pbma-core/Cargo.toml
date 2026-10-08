@@ -7,9 +7,16 @@ authors.workspace = true
 repository.workspace = true
 
 [dependencies]
-pbma-model.workspace = true
 slotmap.workspace = true
 thiserror.workspace = true
+serde.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[[bench]]
+name = "neighborhood"
+harness = false
 
 [lints]
 workspace = true

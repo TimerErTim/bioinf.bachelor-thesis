@@ -1,6 +1,6 @@
 //! Port traits: the injected behavior boundary of the kernel.
 
-use pbma_model::{EnvState, GlobalParams, Population, SpeciesId};
+use crate::model::{EnvState, GlobalParams, Population, SpeciesId};
 
 use crate::World;
 use crate::registry::SpeciesRegistry;
@@ -73,12 +73,12 @@ pub trait EvolutionEngine {
         &mut self,
         world: &World,
         rng: &mut dyn Rng,
-        out: &mut Vec<(pbma_model::SpeciesId, pbma_model::Species)>,
+        out: &mut Vec<(crate::model::SpeciesId, crate::model::Species)>,
     );
 
     /// Reports species ids that went extinct this tick (no populations
     /// anywhere in the world). The kernel removes them from the registry.
-    fn prune_extinct(&mut self, world: &World, out: &mut Vec<pbma_model::SpeciesId>);
+    fn prune_extinct(&mut self, world: &World, out: &mut Vec<crate::model::SpeciesId>);
 }
 
 /// A migration flux: individuals moving from one cell to a neighbor.

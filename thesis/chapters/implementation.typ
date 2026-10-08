@@ -11,30 +11,32 @@ visualization) that never need to modify kernel code.
 
 == Crate structure
 
-The workspace separates the framework into libraries and runnable binaries:
+The workspace separates the framework into a kernel library, an adapter
+library, and runnable binaries:
 
-- `pbma-model`: pure domain types with no framework dependencies. The
-  environment state of a cell (gas amounts for O₂, CO₂, CH₄ and H₂O,
-  temperature, light), the species definition with its trait values, the
-  population quantity type with saturating non-negative arithmetic, and the
-  global parameters (gravity, day length, axial tilt, diffusion coefficient).
-- `pbma-core`: the kernel. It owns the world state, drives the tick loop, and
-  declares the *ports* (traits) through which all simulation behavior is
-  injected. It depends only on `pbma-model`.
-- `pbma-grid`: grid cell management. Coordinates with canonical neighborhood
+- `pbma-core`: the kernel. It contains the domain types (the environment
+  state of a cell: gas amounts for O₂, CO₂, CH₄ and H₂O, temperature,
+  light; the species definition with its trait values; the population
+  quantity type with saturating non-negative arithmetic; the global
+  parameters), the grid storage (coordinates with canonical neighborhood
   orders, dense row-major storage with 64×64 chunk bookkeeping for later
-  parallel work splitting, and double-buffered grids for snapshot-and-swap
-  phases.
+  parallel work splitting, double-buffered grids for snapshot-and-swap
+  phases), the world state, the tick driver, and the *ports* (traits)
+  through which all simulation behavior is injected. The domain types and
+  grid storage are kept as modules of the kernel rather than as separate
+  crates: downstream implementors depend on the ports of the kernel
+  anyway, and a single kernel crate keeps the public surface coherent.
 - `pbma-sim`: default adapters implementing the kernel ports: a
   mass-conserving diffusion cellular automaton, a logistic population
-  behavior, an overcrowding-driven migration policy, and a metrics recorder.
+  behavior, an overcrowding-driven migration policy, a deterministic
+  evolution engine, and a metrics recorder.
 - `runnables/pbma-cli` and `runnables/pbma-gui`: binaries that wire concrete
-  adapters to the kernel. Only binaries may depend on concrete adapters; the
-  libraries depend on ports exclusively.
+  adapters to the kernel. Only binaries wire concrete adapters to the
+  kernel; the kernel never references adapter code.
 
-The dependency direction is strictly inward: `model` ← `core` ← `grid`/`sim`,
-with binaries at the outside. This realizes dependency inversion at the
-compiler level: the kernel cannot reference adapter code even by accident.
+The dependency direction is strictly inward: `core` ← `sim`, with binaries
+at the outside. This realizes dependency inversion at the compiler level:
+the kernel cannot reference adapter code even by accident.
 
 == Species registry
 

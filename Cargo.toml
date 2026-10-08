@@ -10,9 +10,7 @@ authors = ["Tim Peko <timerertim@gmail.com>"]
 repository = "https://github.com/TimerErTim/bioinf.bachelor-thesis"
 
 [workspace.dependencies]
-pbma-model = { path = "crates/pbma-model" }
 pbma-core = { path = "crates/pbma-core" }
-pbma-grid = { path = "crates/pbma-grid" }
 pbma-sim = { path = "crates/pbma-sim" }
 
 slotmap = "1"

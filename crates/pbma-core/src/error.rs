@@ -1,6 +1,6 @@
 //! Kernel error types.
 
-use pbma_model::SpeciesId;
+use crate::model::SpeciesId;
 
 /// Result alias for kernel operations.
 pub type Result<T> = std::result::Result<T, Error>;

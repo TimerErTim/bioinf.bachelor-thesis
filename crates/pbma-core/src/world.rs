@@ -1,6 +1,6 @@
 //! World state and tick orchestration.
 
-use pbma_model::{EnvState, GlobalParams, Population, SpeciesId};
+use crate::model::{EnvState, GlobalParams, Population, SpeciesId};
 
 use crate::ports::{
     BehaviorDelta, CellContext, EnvironmentStep, MigrationPolicy, PopulationBehavior, Recorder,
@@ -272,7 +272,7 @@ impl TickDriver {
                     .find(|(pid, _)| pid.raw == id.raw)
                 {
                     let new_value = entry.1.amount.value() + delta.delta;
-                    entry.1.amount = pbma_model::Amount::new(new_value);
+                    entry.1.amount = crate::model::Amount::new(new_value);
                 }
             }
             cell.populations.retain(|(_, p)| p.amount.value() > 0.0);
@@ -287,7 +287,7 @@ impl TickDriver {
                 continue;
             }
             let (target_x, target_y) = (target_x as u32, target_y as u32);
-            let moved = pbma_model::Amount::new(flux.amount);
+            let moved = crate::model::Amount::new(flux.amount);
             if let Ok(source) = world.cell_mut(flux.from_x, flux.from_y)
                 && let Some(entry) = source
                     .populations

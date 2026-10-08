@@ -285,8 +285,6 @@ version = "0.1.0"
 dependencies = [
  "criterion",
  "pbma-core",
- "pbma-grid",
- "pbma-model",
  "pbma-sim",
  "serde",
  "toml",
@@ -296,17 +294,9 @@ dependencies = [
 name = "pbma-core"
 version = "0.1.0"
 dependencies = [
- "pbma-model",
+ "serde",
+ "serde_json",
  "slotmap",
- "thiserror",
-]
-
-[[package]]
-name = "pbma-grid"
-version = "0.1.0"
-dependencies = [
- "criterion",
- "pbma-core",
  "thiserror",
 ]
 
@@ -315,21 +305,10 @@ name = "pbma-gui"
 version = "0.1.0"
 
 [[package]]
-name = "pbma-model"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "slotmap",
-]
-
-[[package]]
 name = "pbma-sim"
 version = "0.1.0"
 dependencies = [
  "pbma-core",
- "pbma-grid",
- "pbma-model",
 ]
 
 [[package]]

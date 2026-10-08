@@ -2,7 +2,7 @@
 
 use std::hint::black_box;
 
-use pbma_grid::coords::{VON_NEUMANN, in_bounds, index_of};
+use pbma_core::grid::coords::{VON_NEUMANN, in_bounds, index_of};
 
 fn neighbor_sum(cells: &[f64], width: u32, height: u32) -> f64 {
     let mut total = 0.0;

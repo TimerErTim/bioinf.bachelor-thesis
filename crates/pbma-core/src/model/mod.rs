@@ -1,10 +1,11 @@
 //! Pure domain types for the PBMA simulation.
 //!
-//! This crate has no dependencies on other pbma crates. It defines the
-//! vocabulary of the simulation: environment state of a cell, species
-//! definitions, population amounts, and global world parameters.
+//! These types are intentionally behavior-free: they define the vocabulary
+//! of the simulation (environment state of a cell, species definitions,
+//! population amounts, global world parameters) without any simulation
+//! machinery.
 
-/// Amount of a substance or population. Non-negative, saturating arithmetic.
+/// Non-negative amounts with saturating arithmetic.
 pub mod quantity;
 
 /// Environment state held by a single grid cell.

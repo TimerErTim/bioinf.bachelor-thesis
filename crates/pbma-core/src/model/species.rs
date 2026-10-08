@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::quantity::Amount;
+use super::quantity::Amount;
 
 /// Stable identifier for a species within one simulation run.
 ///

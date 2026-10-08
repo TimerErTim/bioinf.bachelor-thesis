@@ -46,7 +46,7 @@ impl MigrationPolicy for OvercrowdingMigration {
 mod tests {
     use super::*;
     use pbma_core::SpeciesRegistry;
-    use pbma_model::{Amount, EnvState, GlobalParams, Population, Species, SpeciesTraits};
+    use pbma_core::model::{Amount, EnvState, GlobalParams, Population, Species, SpeciesTraits};
 
     fn params() -> GlobalParams {
         GlobalParams {

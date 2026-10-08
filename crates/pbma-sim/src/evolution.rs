@@ -1,8 +1,8 @@
 //! Deterministic evolution adapter: trait-drift variants and extinction pruning.
 
 use pbma_core::World;
+use pbma_core::model::{Species, SpeciesId};
 use pbma_core::ports::{EvolutionEngine, Rng};
-use pbma_model::{Species, SpeciesId};
 
 /// Drives speciation and extinction from the post-migration world state.
 ///
@@ -48,8 +48,11 @@ impl VariationEngine {
     /// proportionally to the parent's tolerance width so specialists drift
     /// less in absolute kelvin than eurytherm species.
     #[must_use]
-    fn variant_traits(parent: pbma_model::SpeciesTraits, factor: f64) -> pbma_model::SpeciesTraits {
-        pbma_model::SpeciesTraits {
+    fn variant_traits(
+        parent: pbma_core::model::SpeciesTraits,
+        factor: f64,
+    ) -> pbma_core::model::SpeciesTraits {
+        pbma_core::model::SpeciesTraits {
             optimal_temperature: parent.optimal_temperature
                 + (factor - 1.0) * parent.temperature_tolerance,
             temperature_tolerance: parent.temperature_tolerance,
@@ -121,7 +124,7 @@ impl EvolutionEngine for VariationEngine {
 mod tests {
     use super::*;
     use crate::rng::SplitMixRng;
-    use pbma_model::{Amount, EnvState, GlobalParams, Population, Species, SpeciesTraits};
+    use pbma_core::model::{Amount, EnvState, GlobalParams, Population, Species, SpeciesTraits};
 
     fn params() -> GlobalParams {
         GlobalParams {

@@ -2,7 +2,7 @@
 
 use slotmap::{DefaultKey, SlotMap};
 
-use pbma_model::{Species, SpeciesId};
+use crate::model::{Species, SpeciesId};
 
 use crate::{Error, Result};
 
@@ -96,7 +96,7 @@ impl SpeciesRegistry {
     /// [`Error::DuplicateSpecies`] when the generated name is taken.
     pub fn spawn_variant<F>(&mut self, parent: SpeciesId, mutate: F) -> Result<SpeciesId>
     where
-        F: FnOnce(pbma_model::SpeciesTraits) -> pbma_model::SpeciesTraits,
+        F: FnOnce(crate::model::SpeciesTraits) -> crate::model::SpeciesTraits,
     {
         let base = self.get(parent)?;
         let name = format!("{}'", base.name);
@@ -130,7 +130,7 @@ impl<'a> Iterator for SpeciesRegistryIter<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pbma_model::SpeciesTraits;
+    use crate::model::SpeciesTraits;
 
     fn species(name: &str) -> Species {
         Species {
