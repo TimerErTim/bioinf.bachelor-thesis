@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use super::quantity::Amount;
+use super::quantity::PositiveF64;
 
 /// Stable identifier for a species within one simulation run.
 ///
@@ -69,8 +69,8 @@ pub struct SpeciesTraits {
 /// Population of one species in one cell.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Population {
-    /// Amount of individuals (population units) in the cell.
-    pub amount: Amount,
+    /// PositiveF64 of individuals (population units) in the cell.
+    pub amount: PositiveF64,
 }
 
 #[cfg(test)]

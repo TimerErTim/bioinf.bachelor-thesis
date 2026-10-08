@@ -46,7 +46,9 @@ impl MigrationPolicy for OvercrowdingMigration {
 mod tests {
     use super::*;
     use pbma_core::SpeciesRegistry;
-    use pbma_core::model::{Amount, EnvState, GlobalParams, Population, Species, SpeciesTraits};
+    use pbma_core::model::{
+        EnvState, GlobalParams, Population, PositiveF64, Species, SpeciesTraits,
+    };
 
     fn params() -> GlobalParams {
         GlobalParams {
@@ -72,7 +74,7 @@ mod tests {
     #[test]
     fn below_threshold_emits_nothing() {
         let env = EnvState {
-            gases: [Amount::ZERO; 4],
+            gases: [PositiveF64::ZERO; 4],
             temperature: 300.0,
             light: 1.0,
         };
@@ -84,7 +86,7 @@ mod tests {
         let pops = [(
             id,
             Population {
-                amount: Amount::new(50.0),
+                amount: PositiveF64::new(50.0),
             },
         )];
         let ctx = CellContext {
@@ -104,7 +106,7 @@ mod tests {
     #[test]
     fn above_threshold_emits_four_fluxes() {
         let env = EnvState {
-            gases: [Amount::ZERO; 4],
+            gases: [PositiveF64::ZERO; 4],
             temperature: 300.0,
             light: 1.0,
         };
@@ -116,7 +118,7 @@ mod tests {
         let pops = [(
             id,
             Population {
-                amount: Amount::new(200.0),
+                amount: PositiveF64::new(200.0),
             },
         )];
         let ctx = CellContext {
@@ -138,7 +140,7 @@ mod tests {
     #[test]
     fn per_species_thresholds_differ() {
         let env = EnvState {
-            gases: [Amount::ZERO; 4],
+            gases: [PositiveF64::ZERO; 4],
             temperature: 300.0,
             light: 1.0,
         };
@@ -154,13 +156,13 @@ mod tests {
             (
                 tolerant,
                 Population {
-                    amount: Amount::new(200.0),
+                    amount: PositiveF64::new(200.0),
                 },
             ),
             (
                 sensitive,
                 Population {
-                    amount: Amount::new(200.0),
+                    amount: PositiveF64::new(200.0),
                 },
             ),
         ];
@@ -182,7 +184,7 @@ mod tests {
     #[test]
     fn stale_species_emits_nothing() {
         let env = EnvState {
-            gases: [Amount::ZERO; 4],
+            gases: [PositiveF64::ZERO; 4],
             temperature: 300.0,
             light: 1.0,
         };
@@ -195,7 +197,7 @@ mod tests {
         let pops = [(
             id,
             Population {
-                amount: Amount::new(500.0),
+                amount: PositiveF64::new(500.0),
             },
         )];
         let ctx = CellContext {

@@ -75,10 +75,10 @@ fn run(config: Config) {
     };
     let initial = pbma_core::model::EnvState {
         gases: [
-            pbma_core::model::Amount::new(21.0), // O2
-            pbma_core::model::Amount::new(0.04), // CO2
-            pbma_core::model::Amount::ZERO,      // CH4
-            pbma_core::model::Amount::new(1.0),  // H2O
+            pbma_core::model::PositiveF64::new(21.0), // O2
+            pbma_core::model::PositiveF64::new(0.04), // CO2
+            pbma_core::model::PositiveF64::ZERO,      // CH4
+            pbma_core::model::PositiveF64::new(1.0),  // H2O
         ],
         temperature: config.initial_temperature,
         light: config.initial_light,
@@ -100,7 +100,7 @@ fn run(config: Config) {
         Err(e) => die(&format!("register species: {e}")),
     };
     let seed_population = pbma_core::model::Population {
-        amount: pbma_core::model::Amount::new(10.0),
+        amount: pbma_core::model::PositiveF64::new(10.0),
     };
     for cell in world.cells_mut() {
         cell.populations.push((species_id, seed_population));

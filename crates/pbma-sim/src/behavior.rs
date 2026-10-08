@@ -70,7 +70,9 @@ impl PopulationBehavior for LogisticBehavior {
 mod tests {
     use super::*;
     use pbma_core::SpeciesRegistry;
-    use pbma_core::model::{Amount, EnvState, GlobalParams, Population, Species, SpeciesTraits};
+    use pbma_core::model::{
+        EnvState, GlobalParams, Population, PositiveF64, Species, SpeciesTraits,
+    };
 
     fn ctx<'a>(
         env: &'a EnvState,
@@ -112,7 +114,7 @@ mod tests {
 
     fn env_at(temperature: f64, light: f64) -> EnvState {
         EnvState {
-            gases: [Amount::ZERO; 4],
+            gases: [PositiveF64::ZERO; 4],
             temperature,
             light,
         }
@@ -141,7 +143,7 @@ mod tests {
         let pops = [(
             id,
             Population {
-                amount: Amount::new(10.0),
+                amount: PositiveF64::new(10.0),
             },
         )];
         let other = SpeciesId { raw: u64::MAX };
@@ -162,7 +164,7 @@ mod tests {
         let pops = [(
             id,
             Population {
-                amount: Amount::new(10.0),
+                amount: PositiveF64::new(10.0),
             },
         )];
         let ctx = ctx(&env, &pops, &p, &registry);
@@ -185,13 +187,13 @@ mod tests {
             (
                 warm,
                 Population {
-                    amount: Amount::new(10.0),
+                    amount: PositiveF64::new(10.0),
                 },
             ),
             (
                 cold,
                 Population {
-                    amount: Amount::new(10.0),
+                    amount: PositiveF64::new(10.0),
                 },
             ),
         ];
@@ -217,13 +219,13 @@ mod tests {
             (
                 fast,
                 Population {
-                    amount: Amount::new(10.0),
+                    amount: PositiveF64::new(10.0),
                 },
             ),
             (
                 slow,
                 Population {
-                    amount: Amount::new(10.0),
+                    amount: PositiveF64::new(10.0),
                 },
             ),
         ];
@@ -244,7 +246,7 @@ mod tests {
         let pops = [(
             id,
             Population {
-                amount: Amount::new(100.0),
+                amount: PositiveF64::new(100.0),
             },
         )];
         let ctx = ctx(&env, &pops, &p, &registry);
@@ -262,7 +264,7 @@ mod tests {
         let pops = [(
             id,
             Population {
-                amount: Amount::new(10.0),
+                amount: PositiveF64::new(10.0),
             },
         )];
         let ctx = ctx(&env, &pops, &p, &registry);

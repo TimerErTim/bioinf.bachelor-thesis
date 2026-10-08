@@ -19,5 +19,5 @@ pub mod params;
 
 pub use env::{EnvState, GASES, Gas};
 pub use params::GlobalParams;
-pub use quantity::Amount;
+pub use quantity::PositiveF64;
 pub use species::{Population, Species, SpeciesId, SpeciesTraits};

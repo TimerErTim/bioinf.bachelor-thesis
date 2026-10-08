@@ -92,7 +92,7 @@ pub struct Flux {
     pub direction: (i32, i32),
     /// Species that migrates.
     pub species: SpeciesId,
-    /// Amount of individuals moving.
+    /// PositiveF64 of individuals moving.
     pub amount: f64,
 }
 

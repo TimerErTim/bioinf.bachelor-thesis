@@ -2,7 +2,7 @@
 
 use std::hint::black_box;
 
-use pbma_core::model::{Amount, EnvState, GlobalParams, Population, Species, SpeciesTraits};
+use pbma_core::model::{EnvState, GlobalParams, Population, PositiveF64, Species, SpeciesTraits};
 use pbma_core::{TickDriver, World};
 use pbma_sim::{DiffusionStep, LogisticBehavior, OvercrowdingMigration, VecRecorder};
 
@@ -16,10 +16,10 @@ fn world_1m() -> World {
     };
     let initial = EnvState {
         gases: [
-            Amount::new(21.0),
-            Amount::new(0.04),
-            Amount::ZERO,
-            Amount::new(1.0),
+            PositiveF64::new(21.0),
+            PositiveF64::new(0.04),
+            PositiveF64::ZERO,
+            PositiveF64::new(1.0),
         ],
         temperature: 300.0,
         light: 0.5,
@@ -41,7 +41,7 @@ fn world_1m() -> World {
         cell.populations.push((
             id,
             Population {
-                amount: Amount::new(10.0),
+                amount: PositiveF64::new(10.0),
             },
         ));
         cell.populations.sort_by_key(|(sid, _)| sid.raw);

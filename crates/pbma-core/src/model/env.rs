@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use super::quantity::Amount;
+use super::quantity::PositiveF64;
 
 /// Chemical species tracked in the environment.
 ///
@@ -44,7 +44,7 @@ impl Gas {
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct EnvState {
     /// Gas amounts indexed by [`Gas::index`].
-    pub gases: [Amount; 4],
+    pub gases: [PositiveF64; 4],
     /// Temperature in kelvin.
     pub temperature: f64,
     /// Light intensity, unitless normalized [0, 1].
@@ -54,12 +54,12 @@ pub struct EnvState {
 impl EnvState {
     /// Reads the amount of one gas.
     #[must_use]
-    pub const fn gas(&self, gas: Gas) -> Amount {
+    pub const fn gas(&self, gas: Gas) -> PositiveF64 {
         self.gases[gas.index()]
     }
 
     /// Writes the amount of one gas.
-    pub fn set_gas(&mut self, gas: Gas, amount: Amount) {
+    pub fn set_gas(&mut self, gas: Gas, amount: PositiveF64) {
         self.gases[gas.index()] = amount;
     }
 
@@ -77,12 +77,12 @@ mod tests {
     #[test]
     fn total_mass_sums_all_gases() {
         let mut env = EnvState {
-            gases: [Amount::ZERO; 4],
+            gases: [PositiveF64::ZERO; 4],
             temperature: 288.0,
             light: 0.5,
         };
-        env.set_gas(Gas::O2, Amount::new(2.0));
-        env.set_gas(Gas::Co2, Amount::new(3.0));
+        env.set_gas(Gas::O2, PositiveF64::new(2.0));
+        env.set_gas(Gas::Co2, PositiveF64::new(3.0));
         assert!((env.total_mass() - 5.0).abs() < 1e-12);
     }
 }

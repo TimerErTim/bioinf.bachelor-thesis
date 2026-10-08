@@ -2,7 +2,7 @@
 
 use std::hash::{Hash, Hasher};
 
-use pbma_core::model::{Amount, EnvState, GlobalParams, Species, SpeciesTraits};
+use pbma_core::model::{EnvState, GlobalParams, PositiveF64, Species, SpeciesTraits};
 use pbma_core::{TickDriver, World};
 use pbma_sim::{DiffusionStep, LogisticBehavior, OvercrowdingMigration, VecRecorder};
 
@@ -18,10 +18,10 @@ fn params(diffusion: f64) -> GlobalParams {
 fn initial_env() -> EnvState {
     EnvState {
         gases: [
-            Amount::new(21.0),
-            Amount::new(0.04),
-            Amount::ZERO,
-            Amount::new(1.0),
+            PositiveF64::new(21.0),
+            PositiveF64::new(0.04),
+            PositiveF64::ZERO,
+            PositiveF64::new(1.0),
         ],
         temperature: 300.0,
         light: 0.5,
@@ -36,7 +36,7 @@ fn seeded_world(width: u32, height: u32, diffusion: f64) -> (World, u64) {
             let cell = &mut world.cells_mut()[(y * width + x) as usize];
             cell.env.set_gas(
                 pbma_core::model::Gas::O2,
-                Amount::new(21.0 + f64::from(x) + f64::from(y)),
+                PositiveF64::new(21.0 + f64::from(x) + f64::from(y)),
             );
         }
     }
@@ -56,7 +56,7 @@ fn seeded_world(width: u32, height: u32, diffusion: f64) -> (World, u64) {
         cell.populations.push((
             id,
             pbma_core::model::Population {
-                amount: Amount::new(50.0),
+                amount: PositiveF64::new(50.0),
             },
         ));
         cell.populations.sort_by_key(|(sid, _)| sid.raw);
@@ -128,7 +128,7 @@ fn migration_moves_not_creates_population() {
     // 1x2 world: two cells, crowded left cell migrates right.
     let (mut world, id) = seeded_world(1, 2, 0.0);
     // make left cell crowded
-    world.cells_mut()[0].populations[0].1.amount = Amount::new(400.0);
+    world.cells_mut()[0].populations[0].1.amount = PositiveF64::new(400.0);
     let before_total: f64 = world
         .cells()
         .iter()

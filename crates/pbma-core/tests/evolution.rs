@@ -4,7 +4,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use pbma_core::model::{
-    Amount, EnvState, GlobalParams, Population, Species, SpeciesId, SpeciesTraits,
+    EnvState, GlobalParams, Population, PositiveF64, Species, SpeciesId, SpeciesTraits,
 };
 use pbma_core::ports::{EvolutionEngine, Recorder, Rng};
 use pbma_core::{TickDriver, World};
@@ -20,7 +20,7 @@ fn params() -> GlobalParams {
 
 fn env() -> EnvState {
     EnvState {
-        gases: [Amount::ZERO; 4],
+        gases: [PositiveF64::ZERO; 4],
         temperature: 300.0,
         light: 0.5,
     }
@@ -188,13 +188,13 @@ fn population_loss_triggers_extinction_next_tick() {
     world.cells_mut()[0].populations.push((
         id,
         Population {
-            amount: Amount::new(0.0),
+            amount: PositiveF64::new(0.0),
         },
     ));
     world.cells_mut()[1].populations.push((
         id,
         Population {
-            amount: Amount::new(0.0),
+            amount: PositiveF64::new(0.0),
         },
     ));
 
@@ -218,7 +218,7 @@ fn spawned_variant_is_registered_and_descended() {
     world.cells_mut()[0].populations.push((
         parent,
         Population {
-            amount: Amount::new(10.0),
+            amount: PositiveF64::new(10.0),
         },
     ));
 

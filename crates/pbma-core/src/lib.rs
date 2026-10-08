@@ -27,7 +27,7 @@ pub mod world;
 
 pub use error::{Error, Result};
 pub use model::{
-    Amount, EnvState, GASES, Gas, GlobalParams, Population, Species, SpeciesId, SpeciesTraits,
+    EnvState, GASES, Gas, GlobalParams, Population, PositiveF64, Species, SpeciesId, SpeciesTraits,
 };
 pub use registry::{SpeciesRegistry, SpeciesRegistryIter};
 pub use world::{TickDriver, World};

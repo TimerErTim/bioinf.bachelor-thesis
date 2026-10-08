@@ -124,7 +124,9 @@ impl EvolutionEngine for VariationEngine {
 mod tests {
     use super::*;
     use crate::rng::SplitMixRng;
-    use pbma_core::model::{Amount, EnvState, GlobalParams, Population, Species, SpeciesTraits};
+    use pbma_core::model::{
+        EnvState, GlobalParams, Population, PositiveF64, Species, SpeciesTraits,
+    };
 
     fn params() -> GlobalParams {
         GlobalParams {
@@ -137,7 +139,7 @@ mod tests {
 
     fn env() -> EnvState {
         EnvState {
-            gases: [Amount::ZERO; 4],
+            gases: [PositiveF64::ZERO; 4],
             temperature: 300.0,
             light: 0.5,
         }
@@ -164,7 +166,7 @@ mod tests {
         world.cells_mut()[0].populations.push((
             id,
             Population {
-                amount: Amount::new(10.0),
+                amount: PositiveF64::new(10.0),
             },
         ));
         world

@@ -54,7 +54,7 @@ impl EnvironmentStep for DiffusionStep {
                     net_inflow += (other - own) * self.alpha;
                 }
             }
-            next.set_gas(gas, pbma_core::model::Amount::new(own + net_inflow));
+            next.set_gas(gas, pbma_core::model::PositiveF64::new(own + net_inflow));
         }
         next
     }
@@ -71,7 +71,7 @@ pub fn total_gas(envs: &[EnvState]) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pbma_core::model::{Amount, EnvState, Gas};
+    use pbma_core::model::{EnvState, Gas, PositiveF64};
 
     // Helper building a CellContext manually.
     fn ctx<'a>(
@@ -94,7 +94,7 @@ mod tests {
     #[test]
     fn flat_field_is_stable() {
         let env = EnvState {
-            gases: [Amount::new(10.0); 4],
+            gases: [PositiveF64::new(10.0); 4],
             temperature: 288.0,
             light: 0.5,
         };
@@ -108,12 +108,12 @@ mod tests {
     #[test]
     fn gradient_relaxes_conserving_mass() {
         let env_a = EnvState {
-            gases: [Amount::ZERO; 4],
+            gases: [PositiveF64::ZERO; 4],
             temperature: 288.0,
             light: 0.5,
         };
         let mut env_b = env_a;
-        env_b.set_gas(Gas::O2, Amount::new(8.0));
+        env_b.set_gas(Gas::O2, PositiveF64::new(8.0));
 
         let params = test_params();
         let registry = pbma_core::SpeciesRegistry::new();
