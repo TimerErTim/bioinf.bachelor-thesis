@@ -69,8 +69,8 @@ fn run_ticks(ticks: u64, width: u32, height: u32, diffusion: f64) -> (u64, f64, 
     let recorder = std::rc::Rc::new(std::cell::RefCell::new(VecRecorder::default()));
     struct RcRecorder(std::rc::Rc<std::cell::RefCell<VecRecorder>>);
     impl pbma_core::ports::Recorder for RcRecorder {
-        fn record(&mut self, tick: u64, metric: &str, value: f64) {
-            self.0.borrow_mut().record(tick, metric, value);
+        fn record(&mut self, tick: u64, world: &pbma_core::World) {
+            self.0.borrow_mut().record(tick, world);
         }
     }
     let mut driver = TickDriver::new(
@@ -139,8 +139,8 @@ fn migration_moves_not_creates_population() {
     let recorder = std::rc::Rc::new(std::cell::RefCell::new(VecRecorder::default()));
     struct RcRecorder(std::rc::Rc<std::cell::RefCell<VecRecorder>>);
     impl pbma_core::ports::Recorder for RcRecorder {
-        fn record(&mut self, tick: u64, metric: &str, value: f64) {
-            self.0.borrow_mut().record(tick, metric, value);
+        fn record(&mut self, tick: u64, world: &pbma_core::World) {
+            self.0.borrow_mut().record(tick, world);
         }
     }
     let mut driver = TickDriver::new(

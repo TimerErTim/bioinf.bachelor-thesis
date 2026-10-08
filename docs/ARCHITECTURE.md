@@ -64,7 +64,7 @@ sequenceDiagram
     D->>E: step(previous snapshot)
     D->>B: update(cell contexts)
     D->>M: compute migration fluxes
-    D->>R: record tick metrics
+    D->>R: record(tick, final world state)
     Note over D: swap buffers -> next tick
 ```
 
@@ -76,7 +76,7 @@ Ports in `pbma-core::ports`:
 | `PopulationBehavior` | per-species population update (default: logistic-style growth; later: RL-derived formulas) |
 | `MigrationPolicy` | computes per-tick migration fluxes between neighboring cells |
 | `Rng` | deterministic, seedable randomness passed explicitly (no global state) |
-| `Recorder` | telemetry sink (CSV rows, aggregates) |
+| `Recorder` | consumer-defined telemetry: receives the final world per tick and extracts whatever metrics it wants (or snapshots the world verbatim) |
 
 ### Species registry (slotmap)
 
@@ -99,7 +99,7 @@ Enforced by tests: same seed + same config => identical metrics hash (golden tra
 ## Grid and parallel execution
 
 - `Grid<T>` in `pbma-core::grid`: linearized dense storage, fixed chunk size (64x64 target), `width/height` in cells.
-- Neighborhoods: Von Neumann (4) and Moore (8), computed from chunk-local coords with explicit bounds handling at world edges.
+- Neighborhoods: Von Neumann (4) and Moore (8, clockwise from north; diagonals weighted 1/sqrt(2) in exchange computations), computed from chunk-local coords with explicit bounds handling at world edges.
 - Double buffering: each tick reads the frozen previous snapshot and writes a fresh buffer, then swaps. Within a phase, work is split per chunk via rayon (`par_chunks_mut`), no shared mutable cell state.
 - Migration: phases emit flux deltas into a per-tick flux buffer keyed by (target cell, species key); fluxes are applied in a separate apply step after computation. This is message-passing between cells without aliasing.
 - Halo exchange / ghost cells are a later optimization; the first slice uses whole-world snapshot reads.

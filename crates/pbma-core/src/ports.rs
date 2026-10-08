@@ -120,8 +120,14 @@ pub trait Rng {
     fn child(&self, salt: u64) -> Box<dyn Rng>;
 }
 
-/// Receives per-tick metrics.
+/// Consumer-defined metric recording and world observation, called once at
+/// the end of each tick.
+///
+/// The kernel does not know which metrics — if any — a consumer cares
+/// about. The recorder receives the complete final world state of the tick
+/// and decides itself what to extract: a few aggregates, detailed rows, or
+/// a verbatim snapshot of every cell, every tick.
 pub trait Recorder {
-    /// Records one metric value for the given tick.
-    fn record(&mut self, tick: u64, metric: &str, value: f64);
+    /// Called once per tick with the final world state after all phases.
+    fn record(&mut self, tick: u64, world: &World);
 }

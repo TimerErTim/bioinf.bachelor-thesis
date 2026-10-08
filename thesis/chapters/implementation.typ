@@ -61,7 +61,10 @@ $1 / sqrt(2)$ in exchange computations since they are farther away by a
 factor of $sqrt(2)$), and the sorted populations of the cell. The kernel collects
 behavior deltas and migration fluxes into fresh buffers and applies them only
 after all computation has finished, then publishes the new environment and
-swaps buffers.
+swaps buffers. The metrics phase is consumer-defined: the kernel hands the
+recorder the complete final world state of the tick, and the recorder decides
+what to extract — a few aggregates, detailed rows, or a verbatim snapshot of
+every cell on every tick. The kernel itself knows no metrics at all.
 
 == Determinism rules
 

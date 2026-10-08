@@ -54,8 +54,8 @@ fn main() {
     let recorder = std::rc::Rc::new(std::cell::RefCell::new(VecRecorder::default()));
     struct RcRecorder(std::rc::Rc<std::cell::RefCell<VecRecorder>>);
     impl pbma_core::ports::Recorder for RcRecorder {
-        fn record(&mut self, tick: u64, metric: &str, value: f64) {
-            self.0.borrow_mut().record(tick, metric, value);
+        fn record(&mut self, tick: u64, world: &pbma_core::World) {
+            self.0.borrow_mut().record(tick, world);
         }
     }
     let mut driver = TickDriver::new(

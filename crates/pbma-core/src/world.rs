@@ -125,7 +125,8 @@ impl World {
         })
     }
 
-    /// All cells in row-major order.
+    /// All cells in row-major order. Lets downstream consumers scan the
+    /// whole world state (metric extraction, per-tick snapshots).
     #[must_use]
     pub fn cells(&self) -> &[Cell] {
         &self.cells
@@ -340,17 +341,8 @@ impl TickDriver {
             }
         }
 
-        // Phase 4: record metrics.
-        let total_gas: f64 = world.cells.iter().map(|c| c.env.total_mass()).sum();
-        let total_population: f64 = world
-            .cells
-            .iter()
-            .flat_map(|c| c.populations.iter())
-            .map(|(_, p)| p.amount.value())
-            .sum();
-        self.recorder.record(tick, "total_gas", total_gas);
-        self.recorder
-            .record(tick, "total_population", total_population);
+        // Phase 4: record metrics (consumer-defined).
+        self.recorder.record(tick, world);
     }
 
     /// Neighbor environments in fixed order: north, north-east, east,

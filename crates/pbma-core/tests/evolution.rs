@@ -71,7 +71,7 @@ impl Rng for SeqRng {
 struct SinkRecorder;
 
 impl Recorder for SinkRecorder {
-    fn record(&mut self, _tick: u64, _metric: &str, _value: f64) {}
+    fn record(&mut self, _tick: u64, _world: &pbma_core::World) {}
 }
 
 fn driver_with(evolution: Option<(Box<dyn EvolutionEngine>, Vec<f64>)>) -> TickDriver {
