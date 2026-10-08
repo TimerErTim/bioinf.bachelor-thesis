@@ -54,8 +54,11 @@ deterministic and merges cheap.
 One simulation tick runs four phases in fixed order: environment step,
 population behavior, migration, and metrics recording. Each phase receives a
 read-only context for one cell: the frozen environment snapshot of the
-previous tick, the neighbor environments in canonical order (north, east,
-south, west), and the sorted populations of the cell. The kernel collects
+previous tick, the neighbor environments in canonical order (north,
+north-east, east, south-east, south, south-west, west, north-west — the
+Moore ring, clockwise from north, where diagonal neighbors carry weight
+$1 / sqrt(2)$ in exchange computations since they are farther away by a
+factor of $sqrt(2)$), and the sorted populations of the cell. The kernel collects
 behavior deltas and migration fluxes into fresh buffers and applies them only
 after all computation has finished, then publishes the new environment and
 swaps buffers.
@@ -173,10 +176,16 @@ script.
 == Diffusion cellular automaton
 
 The default environment step implements gas diffusion as pressure
-equalization: for each gas, a fraction α of the positive half-difference
-flows from the higher to the lower concentration across each of the four
-neighbor pairs. Inflow and outflow are computed from the same frozen
-snapshot, so exchanges cancel pairwise and total gas mass is conserved
-exactly. α is clamped to 0.25, the stability limit of the four-neighbor
-scheme. Boundary cells treat the missing neighbor as a mirror of themselves,
-so no mass crosses the world edge.
+equalization: for each gas, a fraction of the half-difference flows from
+the higher to the lower concentration across each of the eight neighbor
+pairs (the Moore ring). The exchange between a cell and one neighbor is
+$α w_i (c_("other") - c_("own"))$, where $w_i = 1.0$ for the four axis
+neighbors and $w_i = 1 / sqrt(2)$ for the four diagonals, which are farther
+away by a factor of $sqrt(2)$ and therefore influence the exchange less.
+The weights are symmetric per neighbor pair, and inflow and outflow are
+computed from the same frozen snapshot, so exchanges cancel pairwise and
+total gas mass is conserved exactly. α is clamped to $1 / (4 + 4 / sqrt(2))
+approx 0.146$, the stability limit of the weighted scheme: total outflow
+can then never exceed the cell's own content. Boundary cells treat the
+missing neighbor as a mirror of themselves, so no mass crosses the world
+edge.

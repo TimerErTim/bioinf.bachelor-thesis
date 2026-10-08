@@ -353,9 +353,11 @@ impl TickDriver {
             .record(tick, "total_population", total_population);
     }
 
-    /// Neighbor environments in fixed order: north, east, south, west.
-    /// Edge neighbors fall back to the cell's own environment (clamped
-    /// boundary), keeping the array shape fixed for deterministic reads.
+    /// Neighbor environments in fixed order: north, north-east, east,
+    /// south-east, south, south-west, west, north-west (Moore ring,
+    /// clockwise from north). Edge neighbors fall back to the cell's own
+    /// environment (clamped boundary), keeping the array shape fixed for
+    /// deterministic reads.
     fn neighbor_envs<'a>(
         &self,
         cells: &'a [Cell],
@@ -363,7 +365,7 @@ impl TickDriver {
         y: u32,
         width: u32,
         height: u32,
-    ) -> [&'a EnvState; 4] {
+    ) -> [&'a EnvState; 8] {
         let idx = |x: u32, y: u32| -> Option<usize> {
             if x >= width || y >= height {
                 None
@@ -383,6 +385,6 @@ impl TickDriver {
                     .map(|c| &c.env)
             }
         };
-        [pick(0, -1), pick(1, 0), pick(0, 1), pick(-1, 0)].map(|opt| opt.unwrap_or(own))
+        crate::grid::coords::MOORE.map(|(dx, dy)| pick(dx, dy).unwrap_or(own))
     }
 }

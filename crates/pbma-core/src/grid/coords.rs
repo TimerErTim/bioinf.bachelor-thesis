@@ -15,6 +15,32 @@ pub const MOORE: [(i32, i32); 8] = [
     (-1, -1),
 ];
 
+/// Weight of a diagonal neighbor relative to an axis neighbor.
+///
+/// Diagonal cells are farther away by a factor of sqrt(2), so their
+/// influence on diffusion-like exchange is scaled by 1/sqrt(2).
+pub const DIAGONAL_WEIGHT: f64 = std::f64::consts::FRAC_1_SQRT_2;
+
+/// Per-neighbor weights matching the canonical [`MOORE`] order:
+/// 1.0 for the four axis neighbors, [`DIAGONAL_WEIGHT`] for the four
+/// diagonals.
+pub const MOORE_WEIGHTS: [f64; 8] = [
+    1.0,
+    DIAGONAL_WEIGHT,
+    1.0,
+    DIAGONAL_WEIGHT,
+    1.0,
+    DIAGONAL_WEIGHT,
+    1.0,
+    DIAGONAL_WEIGHT,
+];
+
+/// Sum of all [`MOORE_WEIGHTS`] (4 + 4/sqrt(2) ~ 6.828).
+///
+/// Weighted exchange schemes must scale their rate by this sum to stay
+/// mass-conserving and positivity-preserving.
+pub const MOORE_WEIGHT_SUM: f64 = 4.0 + 4.0 * DIAGONAL_WEIGHT;
+
 /// Checks whether an offset coordinate is inside a `width x height` grid.
 #[must_use]
 pub fn in_bounds(x: i64, y: i64, width: u32, height: u32) -> bool {
@@ -48,5 +74,13 @@ mod tests {
         assert_eq!(VON_NEUMANN[2], (0, 1));
         assert_eq!(VON_NEUMANN[3], (-1, 0));
         assert_eq!(MOORE.len(), 8);
+    }
+
+    #[test]
+    fn moore_weights_match_offsets() {
+        assert_eq!(MOORE_WEIGHTS[0], 1.0);
+        assert_eq!(MOORE_WEIGHTS[1], DIAGONAL_WEIGHT);
+        assert!((DIAGONAL_WEIGHT - std::f64::consts::FRAC_1_SQRT_2).abs() < 1e-12);
+        assert!((MOORE_WEIGHT_SUM - (4.0 + 4.0 * DIAGONAL_WEIGHT)).abs() < 1e-12);
     }
 }

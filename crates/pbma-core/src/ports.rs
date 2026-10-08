@@ -17,9 +17,13 @@ pub struct CellContext<'a> {
     pub y: u32,
     /// Environment state from the previous tick (frozen snapshot).
     pub env: &'a EnvState,
-    /// Neighboring environment states in fixed order:
-    /// north, east, south, west (Von Neumann ring, missing edges skipped).
-    pub neighbors: [&'a EnvState; 4],
+    /// Neighboring environment states in fixed order: north, north-east,
+    /// east, south-east, south, south-west, west, north-west (Moore ring,
+    /// clockwise from north; edge neighbors fall back to the cell's own
+    /// state). Diagonal entries carry weight 1/sqrt(2) relative to axis
+    /// entries in exchange computations (see
+    /// `crate::grid::coords::MOORE_WEIGHTS`).
+    pub neighbors: [&'a EnvState; 8],
     /// Populations present in this cell, ascending by species id.
     pub populations: &'a [(SpeciesId, Population)],
     /// Global parameters, constant for the run.

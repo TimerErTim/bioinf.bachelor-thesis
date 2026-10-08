@@ -84,7 +84,7 @@ mod tests {
             x: 0,
             y: 0,
             env,
-            neighbors: [env; 4],
+            neighbors: [env; 8],
             populations,
             params,
             registry,
