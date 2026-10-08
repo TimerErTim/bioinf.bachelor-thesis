@@ -9,7 +9,7 @@ Progress tracker for the framework. Check off items and append a dated line to t
 - [x] `docs/ARCHITECTURE.md` (crate map, tick pipeline, determinism rules, ADR log)
 - [x] `docs/GUIDELINES.md` (software practices, jj workflow, thesis-sync rule, DoD)
 - [x] `docs/ROADMAP.md` (this file)
-- [x] `AGENTS.md` (agentic development contract)
+- [x] ~~`AGENTS.md` (agentic development contract)~~ removed again: no agentic development on this project
 
 ### M1 — Vertical slice
 

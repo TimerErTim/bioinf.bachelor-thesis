@@ -12,6 +12,10 @@ TYPST_FONT_PATHS = "{{config_root}}/thesis/fonts"
 [vars]
 THESIS_TITLE = "A population-based multi-agent approach for simulating large-scale system dynamics in discrete environments"
 
+[tasks.test]
+description = "Run the Rust test suite with cargo-nextest"
+run = ["cargo nextest run --workspace"]
+
 [tasks."fmt:typst"]
 description = "Format the typst code"
 run = ["typstyle -i ./ --timing"]

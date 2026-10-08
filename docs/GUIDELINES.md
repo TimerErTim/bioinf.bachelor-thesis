@@ -37,7 +37,7 @@ Software practices for this repo. These are enforced in review and in CI-style l
 ## Documentation of progress
 
 - `docs/ROADMAP.md` is the single progress tracker. Check off items and append a dated progress-log line at the end of every increment.
-- `AGENTS.md` is the entry point for agentic development; keep its project map current when crate structure changes.
+- `ROADMAP.md` tracks milestone progress and must be updated in the same commit as the work it records.
 
 ## Dependencies
 
