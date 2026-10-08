@@ -15,6 +15,7 @@ fn params() -> GlobalParams {
         day_length_ticks: 240,
         axial_tilt: 0.0,
         diffusion_coefficient: 0.0,
+        light_intensity: 1.0,
     }
 }
 

@@ -44,6 +44,13 @@ impl From<SpeciesId> for slotmap::DefaultKey {
 
 /// A species: an evolutionary lineage whose members are similar enough to
 /// be treated as one unit.
+// TODO(design): redesign species as a trait (interface) rather than a
+// fixed struct, so downstream consumers can supply their own species
+// implementations: methods like `taxon() -> String` and
+// `traits() -> Self::AssociatedTraits`. The taxon should be derived from
+// the trait values themselves (e.g. `ot:0.2;tt:0.1` = optimal temperature,
+// tolerance), not maintained as a free-form name. Tracked in ROADMAP.md
+// (M3 design items).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Species {
     /// Human-readable name, unique per run.
@@ -54,6 +61,12 @@ pub struct Species {
 
 /// Trait values of a species. Kept small and flat; behavior phases read
 /// these directly.
+// TODO(design): make trait storage runtime-extensible. Downstream consumers
+// must be able to define additional species traits without patching the
+// core (e.g. an extension table keyed by trait id, or a trait-object based
+// payload behind the fixed hot-path fields). Behavior adapters resolve
+// their inputs through a trait lookup so core stays generic. Tracked in
+// ROADMAP.md (M3 design items).
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct SpeciesTraits {
     /// Preferred temperature in kelvin; growth declines with distance.

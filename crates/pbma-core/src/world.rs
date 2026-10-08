@@ -9,6 +9,14 @@ use crate::registry::SpeciesRegistry;
 use crate::{Error, Result};
 
 /// One cell of the world: environment plus the populations present.
+// TODO(design): make divergence of species implicit. Species should
+// diverge and specialize smoothly instead of through explicit
+// growth-rate add/sub modifications: once Jev-like decision models are
+// integrated, species modifications become statements like
+// "growth-rate-add <noun>: yes/no" and "growth-rate-down <noun>: yes/no".
+// If a modification lineage carries both add and down, a divergent
+// species split happens automatically. Tracked in ROADMAP.md (M3 design
+// items) and described in the thesis.
 #[derive(Debug, Clone)]
 pub struct Cell {
     /// Environment state of this cell.

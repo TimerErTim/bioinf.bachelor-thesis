@@ -13,6 +13,7 @@ fn world_1m() -> World {
         day_length_ticks: 240,
         axial_tilt: 0.0,
         diffusion_coefficient: 0.2,
+        light_intensity: 1.0,
     };
     let initial = EnvState {
         gases: [

@@ -134,6 +134,17 @@ its last populations is pruned in the same tick, stale keys are detected
 instead of silently aliasing the next species in the table, and a spawned
 variant appears in the registry with the derived trait values.
 
+The current variant model modifies trait values by numeric drift, but the
+direction of travel is a more expressive, *implicit* divergence model.
+Later integration of Jev-like decision models will express species
+modifications not as direct growth-rate add/subtract operations, but as
+decisions over named effects ("growth-rate-add _noun_: yes/no",
+"growth-rate-down _noun_: yes/no"). A lineage that accumulates both
+directions for the same effect is pushed toward a divergent species split:
+the modification structure itself decides when speciation happens, without
+a hand-coded threshold. This is planned work (marked as TODO in the kernel
+and tracked in the roadmap) and does not affect the current experiments.
+
 == Closed-form behavior surrogate
 
 As the first stand-in for a behavior formula derived from offline
@@ -161,9 +172,10 @@ identical metric hashes, a conservation test proves that diffusion neither
 creates nor destroys gas mass, and a bookkeeping test proves that migration
 moves population between cells without creating or destroying it. Finally,
 a benchmark simulates a 1000 × 1000 cell world (one million cells) and
-measures the per-tick runtime — about 207 milliseconds per tick with the
-trait-resolving behavior and migration phases — providing the baseline that
-later parallel optimizations must improve upon.
+measures the per-tick runtime — about 225 milliseconds per tick for the
+full eight-neighbor environment phase with trait-resolving behavior and
+migration phases — providing the baseline that later parallel optimizations
+must improve upon.
 
 == Extensibility contract
 
@@ -174,6 +186,16 @@ policy each plug in as an adapter behind the same trait boundary; the kernel
 and the existing binaries remain untouched. This is the property that makes
 the framework a product in its own right rather than a one-off simulation
 script.
+
+Two further extension seams are planned. Species themselves will become
+interface-like: instead of one fixed struct, a species will expose its
+taxon — derived from its trait values, e.g. `ot:0.2;tt:0.1` — and its
+traits through methods, and the trait set itself will become
+runtime-extensible so consumers can define additional species parameters
+without patching the kernel. Similarly, the set of tracked gases will move
+from a fixed enum to a runtime-registered collection, with the built-in
+gases as defaults. Both are tracked as design items in the roadmap and do
+not constrain the experiments of this thesis.
 
 
 == Diffusion cellular automaton
@@ -192,3 +214,34 @@ approx 0.146$, the stability limit of the weighted scheme: total outflow
 can then never exceed the cell's own content. Boundary cells treat the
 missing neighbor as a mirror of themselves, so no mass crosses the world
 edge.
+
+== Data layout and cache behavior
+
+How the fields of a cell are arranged in memory matters for a simulation
+that touches millions of cells per tick. Two layouts compete. In an Array
+of Structures (AoS), one array stores complete records: cell 0 with all
+its fields, then cell 1 with all of its fields, and so on. In a Structure
+of Arrays (SoA), every field gets its own array: all gas amounts in one
+array, all temperatures in another, all light values in a third. The
+difference shows up in the CPU cache. A cache does not load single values
+but whole cache lines (typically 64 bytes) at once, and a cache miss — a
+round trip to main memory because the needed line is not cached — costs
+orders of magnitude more than a cached access. If one update touches all
+fields of a cell, AoS pulls exactly what is needed into the cache and
+uses every byte of the loaded line. If instead one update touches only
+one field across many cells, AoS drags the unused fields along, wastes
+most of each loaded line, and cache misses multiply.
+
+The framework deliberately uses AoS: the environment state bundles the
+four gas amounts, temperature, and light in one struct, and every
+grid-cell update of the environment phase reads and writes all fields
+together. With all fields in use per update, AoS is at least as efficient
+as SoA and considerably simpler to pass through the port interfaces. If
+profiling ever shows phases that touch only a subset of fields across many
+cells, migrating to SoA would trade interface simplicity for fewer cache
+misses, but would require redesigning the update passes and context
+types. The kernel code records this trade-off at the type definition.
+
+// TODO(thesis): add a small figure contrasting AoS and SoA memory layout
+// (two memory bars with field coloring plus a cache-line overlay).
+// Optional; the prose above is self-contained.

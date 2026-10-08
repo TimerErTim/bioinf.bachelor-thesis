@@ -12,6 +12,7 @@ fn params(diffusion: f64) -> GlobalParams {
         day_length_ticks: 240,
         axial_tilt: 0.0,
         diffusion_coefficient: diffusion,
+        light_intensity: 1.0,
     }
 }
 

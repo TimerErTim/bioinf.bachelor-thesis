@@ -72,6 +72,7 @@ fn run(config: Config) {
         day_length_ticks: 240,
         axial_tilt: 0.0,
         diffusion_coefficient: config.diffusion,
+        light_intensity: 1.0,
     };
     let initial = pbma_core::model::EnvState {
         gases: [

@@ -9,6 +9,13 @@ use super::quantity::PositiveF64;
 /// The set is fixed for the vertical slice; new gases extend this enum.
 /// Determinism rule: the discriminant order is the canonical iteration order
 /// for all environment fields.
+// TODO(design): make the gas set extensible at runtime. The core should
+// deliver a few predefined gases, but downstream consumers must be able to
+// register additional ones (registry of runtime gas entries, ZST markers,
+// or a slotmap-keyed gas table). Fixed-size `[PositiveF64; 4]` arrays must
+// then move to a keyed/indirected structure without losing determinism or
+// the cache profile. Further design necessary; tracked in ROADMAP.md
+// (M3 design items).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Gas {
     /// Oxygen.
@@ -41,6 +48,13 @@ impl Gas {
 ///
 /// Fixed-size arrays keep cells cache-friendly and make iteration order
 /// deterministic.
+// Layout note: this is an Array-of-Structures (AoS) layout -- every cell
+// carries all fields in one struct. A Structure-of-Arrays (SoA) layout
+// (one array per field) may reduce cache misses if updates ever touch only
+// a subset of fields per phase, but would require a redesign of the update
+// passes. AoS is the conscious choice for now because every grid-cell
+// update currently reads all fields. Re-evaluate if profiling shows field
+// access patterns diverge (thesis: data layout discussion).
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct EnvState {
     /// Gas amounts indexed by [`Gas::index`].

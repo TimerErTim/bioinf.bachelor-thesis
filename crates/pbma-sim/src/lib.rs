@@ -3,6 +3,9 @@
 //! Everything here is replaceable: downstream consumers implement their own
 //! `EnvironmentStep`, `PopulationBehavior`, or `MigrationPolicy` and the
 //! kernel treats them identically.
+// TODO(audit): the adapters in this crate have not been independently
+// verified yet (reviewer audit pending). Tracked in ROADMAP.md (M3 design
+// items).
 
 #![deny(missing_docs)]
 
