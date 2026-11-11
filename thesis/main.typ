@@ -6,6 +6,7 @@
 #import "style.typ": style-document
 
 #let title = sys.inputs.at("title", default: "TITLE MISSING")
+#let printing = eval(sys.inputs.at("printing", default: "false"))
 
 #set document(
   title: title,
@@ -32,7 +33,11 @@
 #import "abbrev.typ": abbr
 
 #let apply-link-style(it) = {
-  show link: underline
+  show link: it => if type(it.dest) == location {
+    it
+  } else {
+    underline(it)
+  }
   it
 }
 
@@ -44,6 +49,11 @@
       it
     })
 )
+
+#let apply-autoplaced-figures(it) = {
+  set figure(placement: auto)
+  it
+}
 
 #show: full-thesis.with(
   titlepage: titlepage(
@@ -57,6 +67,7 @@
   appendix: include "chapters/appendix.typ",
   bibl: bibliography("bib.yaml"), // Can be replaced with a BibLaTex file,
   abbreviations: abbr,
+  include-print-size-control: printing,
 
   document-style: it => {
     set text(font: "Libertinus Serif")
@@ -73,11 +84,13 @@
     show table.cell.where(y: 0): strong
     show: apply-link-style
     show: apply-abbreviation-highlighting
+    show: apply-autoplaced-figures
     it
   },
   appendix-style: it => {
     show: apply-link-style
     show: apply-abbreviation-highlighting
+    show: apply-autoplaced-figures
     it
   },
   acknowledgement-style: it => {

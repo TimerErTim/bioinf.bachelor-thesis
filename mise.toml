@@ -1,6 +1,7 @@
 [tools]
 typst = "0.15"
 typstyle = "0.15"
+"cargo:hayagriva" = "latest"
 
 [settings]
 idiomatic_version_file_enable_tools = ["rust"]
@@ -24,5 +25,6 @@ run = ["typstyle -i ./ --timing"]
 description = "Export the document to PDF"
 env = { THESIS_TITLE = "{{ vars.THESIS_TITLE }}" }
 run = [
-    'typst compile thesis/main.typ --format pdf --input "title=$THESIS_TITLE" --pdf-standard a-3u "Tim Peko BSc Bioinformatics Thesis - {{ env.THESIS_TITLE }}.pdf"'
+    'typst compile thesis/main.typ --format pdf --input "title=$THESIS_TITLE" --pdf-standard a-3u "Tim Peko BSc Bioinformatics Thesis - {{ env.THESIS_TITLE }}.pdf"',
+    'typst compile thesis/main.typ --format pdf --input "title=$THESIS_TITLE" --pdf-standard a-3u --input "printing=true" "Tim Peko BSc Bioinformatics Thesis Print - {{ env.THESIS_TITLE }}.pdf"'
 ]
