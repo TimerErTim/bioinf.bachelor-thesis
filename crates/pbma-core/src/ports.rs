@@ -1,8 +1,9 @@
 //! Port traits: the injected behavior boundary of the kernel.
 
-use crate::model::{EnvState, GlobalParams, Population, SpeciesId};
-
 use crate::World;
+use crate::model::{
+    EnvState, GasRegistry, GlobalParams, Insolation, Population, Species, SpeciesId, TraitSchema,
+};
 use crate::registry::SpeciesRegistry;
 
 /// Context handed to phases for one cell.
@@ -11,23 +12,38 @@ use crate::registry::SpeciesRegistry;
 /// in that cell. Iteration over `populations` is in ascending [`SpeciesId`]
 /// order (determinism rule).
 pub struct CellContext<'a> {
-    /// Cell coordinates.
+    /// Cell X coordinate.
     pub x: u32,
-    /// Cell coordinates.
+    /// Cell Y coordinate.
     pub y: u32,
+    /// World width in cells.
+    pub width: u32,
+    /// World height in cells.
+    pub height: u32,
+    /// Current simulation tick index.
+    pub tick: u64,
+    /// Cell center latitude in radians (`+pi/2` north to `-pi/2` south).
+    pub latitude_rad: f64,
+    /// Cell center longitude in radians (`[0, 2*pi)`).
+    pub longitude_rad: f64,
+    /// Instantaneous top-of-atmosphere orbital insolation at this cell.
+    pub insolation: Insolation,
     /// Environment state from the previous tick (frozen snapshot).
     pub env: &'a EnvState,
     /// Neighboring environment states in fixed order: north, north-east,
     /// east, south-east, south, south-west, west, north-west (Moore ring,
-    /// clockwise from north; edge neighbors fall back to the cell's own
-    /// state). Diagonal entries carry weight 1/sqrt(2) relative to axis
-    /// entries in exchange computations (see
-    /// `crate::grid::coords::MOORE_WEIGHTS`).
+    /// clockwise from north; resolved according to [`GlobalParams::topology`]).
+    /// Diagonal entries carry weight 1/sqrt(2) relative to axis entries in
+    /// exchange computations (see `crate::grid::coords::MOORE_WEIGHTS`).
     pub neighbors: [&'a EnvState; 8],
     /// Populations present in this cell, ascending by species id.
     pub populations: &'a [(SpeciesId, Population)],
-    /// Global parameters, constant for the run.
+    /// Global planetary and orbital parameters, constant for the run.
     pub params: &'a GlobalParams,
+    /// Registered atmospheric gases and physical properties.
+    pub gases: &'a GasRegistry,
+    /// Registered species trait dimensions.
+    pub trait_schema: &'a TraitSchema,
     /// Live species table. Populations may reference stale (extinct) ids;
     /// phases resolve traits through this registry.
     pub registry: &'a SpeciesRegistry,
@@ -35,11 +51,12 @@ pub struct CellContext<'a> {
 
 /// Updates the environment of one cell (cellular automaton step).
 ///
-/// Implementations must be pure functions of the snapshot: no interior
-/// mutation, no global state, no wall-clock dependence.
-pub trait EnvironmentStep {
-    /// Computes the next environment state for one cell.
-    fn step(&self, cell: &CellContext<'_>) -> EnvState;
+/// Implementations must be pure, thread-safe functions of the snapshot: no
+/// interior mutation, no global state, no wall-clock dependence. Writes directly
+/// into `out` (the pre-allocated back-buffer cell) to keep ticks allocation-free.
+pub trait EnvironmentStep: Send + Sync {
+    /// Computes the next environment state for one cell into `out`.
+    fn step(&self, cell: &CellContext<'_>, out: &mut EnvState);
 }
 
 /// Outcome of the behavior phase for one species in one cell.
@@ -51,9 +68,9 @@ pub struct BehaviorDelta {
 
 /// Updates populations of one species in one cell.
 ///
-/// Later increments replace the default implementation with RL-derived
-/// pre-compiled formulas; the kernel contract stays identical.
-pub trait PopulationBehavior {
+/// Later increments replace or supplement default implementations with
+/// decision-model-driven policies; the kernel contract stays identical.
+pub trait PopulationBehavior: Send + Sync {
     /// Computes the net population delta for one species in one cell.
     ///
     /// `species` may be a stale id (its lineage went extinct mid-tick);
@@ -75,14 +92,15 @@ pub trait EvolutionEngine {
     /// parent ids must still be live.
     fn spawn_variants(
         &mut self,
+        tick: u64,
         world: &World,
         rng: &mut dyn Rng,
-        out: &mut Vec<(crate::model::SpeciesId, crate::model::Species)>,
+        out: &mut Vec<(SpeciesId, Species)>,
     );
 
     /// Reports species ids that went extinct this tick (no populations
     /// anywhere in the world). The kernel removes them from the registry.
-    fn prune_extinct(&mut self, world: &World, out: &mut Vec<crate::model::SpeciesId>);
+    fn prune_extinct(&mut self, world: &World, out: &mut Vec<SpeciesId>);
 }
 
 /// A migration flux: individuals moving from one cell to a neighbor.
@@ -104,7 +122,7 @@ pub struct Flux {
 ///
 /// Fluxes are emitted into a per-tick buffer and applied after all
 /// computation; source and target never see each other's writes mid-tick.
-pub trait MigrationPolicy {
+pub trait MigrationPolicy: Send + Sync {
     /// Emits fluxes leaving `cell` this tick, appended in deterministic order.
     fn fluxes(&self, cell: &CellContext<'_>, out: &mut Vec<Flux>);
 }

@@ -44,22 +44,22 @@ impl PopulationBehavior for LogisticBehavior {
 
         // Extinct lineage: population entries outlive their species until the
         // kernel prunes them; they must not grow.
-        let Some(species_def) = cell.registry.get(species).ok() else {
+        let Ok(species_def) = cell.registry.get(species) else {
             return BehaviorDelta { delta: 0.0 };
         };
-        let traits = species_def.traits;
+        let traits = &species_def.traits;
 
         let capacity = CAPACITY_AT_FULL_LIGHT * cell.env.light.max(0.0);
         let fitness = temperature_fitness(
             cell.env.temperature,
-            traits.optimal_temperature,
-            traits.temperature_tolerance,
+            traits.optimal_temperature(),
+            traits.temperature_tolerance(),
         );
 
         if capacity <= 0.0 || amount <= 0.0 {
             return BehaviorDelta { delta: 0.0 };
         }
-        let rate = traits.growth_rate * fitness * (1.0 - amount / capacity);
+        let rate = traits.growth_rate() * fitness * (1.0 - amount / capacity);
         BehaviorDelta {
             delta: amount * rate,
         }
@@ -71,62 +71,57 @@ mod tests {
     use super::*;
     use pbma_core::SpeciesRegistry;
     use pbma_core::model::{
-        EnvState, GlobalParams, Population, PositiveF64, Species, SpeciesTraits,
+        EnvState, GasRegistry, GlobalParams, Insolation, Population, PositiveF64, Species,
+        SpeciesTraits, TraitSchema,
     };
 
     fn ctx<'a>(
         env: &'a EnvState,
         populations: &'a [(SpeciesId, Population)],
         params: &'a GlobalParams,
+        gases: &'a GasRegistry,
+        trait_schema: &'a TraitSchema,
         registry: &'a SpeciesRegistry,
     ) -> CellContext<'a> {
         CellContext {
             x: 0,
             y: 0,
+            width: 1,
+            height: 1,
+            tick: 0,
+            latitude_rad: 0.0,
+            longitude_rad: 0.0,
+            insolation: Insolation {
+                cos_zenith: 1.0,
+                toa_flux_wm2: 1361.0,
+                normalized_light: env.light,
+                toa_uv_wm2: 100.0,
+            },
             env,
             neighbors: [env; 8],
             populations,
             params,
+            gases,
+            trait_schema,
             registry,
         }
     }
 
-    fn params() -> GlobalParams {
-        GlobalParams {
-            gravity: 9.81,
-            day_length_ticks: 240,
-            axial_tilt: 0.0,
-            diffusion_coefficient: 0.2,
-            light_intensity: 1.0,
-        }
-    }
-
     fn species_with(growth_rate: f64, optimal: f64, tolerance: f64) -> Species {
-        Species {
-            name: format!("s{growth_rate}{optimal}{tolerance}"),
-            traits: SpeciesTraits {
-                optimal_temperature: optimal,
-                temperature_tolerance: tolerance,
-                growth_rate,
-                crowding_threshold: 100.0,
-            },
-        }
-    }
-
-    fn env_at(temperature: f64, light: f64) -> EnvState {
-        EnvState {
-            gases: [PositiveF64::ZERO; 4],
-            temperature,
-            light,
-        }
+        Species::new(
+            format!("s{growth_rate}{optimal}{tolerance}"),
+            SpeciesTraits::new(optimal, tolerance, growth_rate, 100.0),
+        )
     }
 
     #[test]
     fn zero_population_stays_zero() {
-        let env = env_at(300.0, 1.0);
-        let p = params();
+        let env = EnvState::new(300.0, 1.0);
+        let p = GlobalParams::earth_like();
+        let g = GasRegistry::with_defaults();
+        let ts = TraitSchema::with_defaults();
         let registry = SpeciesRegistry::new();
-        let ctx = ctx(&env, &[], &p, &registry);
+        let ctx = ctx(&env, &[], &p, &g, &ts, &registry);
         assert_eq!(
             LogisticBehavior.update(SpeciesId { raw: 0 }, &ctx).delta,
             0.0
@@ -135,8 +130,10 @@ mod tests {
 
     #[test]
     fn absent_species_gets_no_delta() {
-        let env = env_at(300.0, 1.0);
-        let p = params();
+        let env = EnvState::new(300.0, 1.0);
+        let p = GlobalParams::earth_like();
+        let g = GasRegistry::with_defaults();
+        let ts = TraitSchema::with_defaults();
         let mut registry = SpeciesRegistry::new();
         let id = registry
             .insert(species_with(0.1, 300.0, 10.0))
@@ -148,15 +145,17 @@ mod tests {
             },
         )];
         let other = SpeciesId { raw: u64::MAX };
-        let ctx = ctx(&env, &pops, &p, &registry);
+        let ctx = ctx(&env, &pops, &p, &g, &ts, &registry);
         assert_eq!(LogisticBehavior.update(other, &ctx).delta, 0.0);
         assert!(LogisticBehavior.update(id, &ctx).delta > 0.0);
     }
 
     #[test]
     fn stale_species_gets_no_delta() {
-        let env = env_at(300.0, 1.0);
-        let p = params();
+        let env = EnvState::new(300.0, 1.0);
+        let p = GlobalParams::earth_like();
+        let g = GasRegistry::with_defaults();
+        let ts = TraitSchema::with_defaults();
         let mut registry = SpeciesRegistry::new();
         let id = registry
             .insert(species_with(0.1, 300.0, 10.0))
@@ -168,15 +167,16 @@ mod tests {
                 amount: PositiveF64::new(10.0),
             },
         )];
-        let ctx = ctx(&env, &pops, &p, &registry);
+        let ctx = ctx(&env, &pops, &p, &g, &ts, &registry);
         assert_eq!(LogisticBehavior.update(id, &ctx).delta, 0.0);
     }
 
     #[test]
     fn traits_drive_growth() {
-        // warm specialist vs cold specialist in the same cell
-        let env = env_at(295.0, 1.0);
-        let p = params();
+        let env = EnvState::new(295.0, 1.0);
+        let p = GlobalParams::earth_like();
+        let g = GasRegistry::with_defaults();
+        let ts = TraitSchema::with_defaults();
         let mut registry = SpeciesRegistry::new();
         let warm = registry
             .insert(species_with(0.5, 295.0, 10.0))
@@ -198,7 +198,7 @@ mod tests {
                 },
             ),
         ];
-        let ctx = ctx(&env, &pops, &p, &registry);
+        let ctx = ctx(&env, &pops, &p, &g, &ts, &registry);
         let warm_delta = LogisticBehavior.update(warm, &ctx).delta;
         let cold_delta = LogisticBehavior.update(cold, &ctx).delta;
         assert!(warm_delta > 0.0);
@@ -207,8 +207,10 @@ mod tests {
 
     #[test]
     fn growth_rate_trait_scales_delta() {
-        let env = env_at(300.0, 1.0);
-        let p = params();
+        let env = EnvState::new(300.0, 1.0);
+        let p = GlobalParams::earth_like();
+        let g = GasRegistry::with_defaults();
+        let ts = TraitSchema::with_defaults();
         let mut registry = SpeciesRegistry::new();
         let fast = registry
             .insert(species_with(0.8, 300.0, 10.0))
@@ -230,7 +232,7 @@ mod tests {
                 },
             ),
         ];
-        let ctx = ctx(&env, &pops, &p, &registry);
+        let ctx = ctx(&env, &pops, &p, &g, &ts, &registry);
         assert!(
             LogisticBehavior.update(fast, &ctx).delta > LogisticBehavior.update(slow, &ctx).delta
         );
@@ -238,8 +240,10 @@ mod tests {
 
     #[test]
     fn growth_stops_at_capacity() {
-        let env = env_at(300.0, 1.0);
-        let p = params();
+        let env = EnvState::new(300.0, 1.0);
+        let p = GlobalParams::earth_like();
+        let g = GasRegistry::with_defaults();
+        let ts = TraitSchema::with_defaults();
         let mut registry = SpeciesRegistry::new();
         let id = registry
             .insert(species_with(0.1, 300.0, 10.0))
@@ -250,14 +254,16 @@ mod tests {
                 amount: PositiveF64::new(100.0),
             },
         )];
-        let ctx = ctx(&env, &pops, &p, &registry);
+        let ctx = ctx(&env, &pops, &p, &g, &ts, &registry);
         assert_eq!(LogisticBehavior.update(id, &ctx).delta, 0.0);
     }
 
     #[test]
     fn zero_light_stops_growth_but_not_population() {
-        let env = env_at(300.0, 0.0);
-        let p = params();
+        let env = EnvState::new(300.0, 0.0);
+        let p = GlobalParams::earth_like();
+        let g = GasRegistry::with_defaults();
+        let ts = TraitSchema::with_defaults();
         let mut registry = SpeciesRegistry::new();
         let id = registry
             .insert(species_with(0.1, 300.0, 10.0))
@@ -268,7 +274,7 @@ mod tests {
                 amount: PositiveF64::new(10.0),
             },
         )];
-        let ctx = ctx(&env, &pops, &p, &registry);
+        let ctx = ctx(&env, &pops, &p, &g, &ts, &registry);
         assert_eq!(LogisticBehavior.update(id, &ctx).delta, 0.0);
     }
 }

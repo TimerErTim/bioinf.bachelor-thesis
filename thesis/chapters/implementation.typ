@@ -15,17 +15,23 @@ The workspace separates the framework into a kernel library, an adapter
 library, and runnable binaries:
 
 - `pbma-core`: the kernel. It contains the domain types (the environment
-  state of a cell: gas amounts for O₂, CO₂, CH₄ and H₂O, temperature,
-  light; the species definition with its trait values; the population
-  quantity type with saturating non-negative arithmetic; the global
-  parameters), the grid storage (coordinates with canonical neighborhood
-  orders, dense row-major storage with 64×64 chunk bookkeeping for later
-  parallel work splitting, double-buffered grids for snapshot-and-swap
-  phases), the world state, the tick driver, and the *ports* (traits)
-  through which all simulation behavior is injected. The domain types and
-  grid storage are kept as modules of the kernel rather than as separate
-  crates: downstream implementors depend on the ports of the kernel
-  anyway, and a single kernel crate keeps the public surface coherent.
+  state of a cell: inline-first `GasAmounts` indexed by an extensible
+  `GasRegistry` pre-populated with O₂, CO₂, CH₄, H₂O, O₃, and N₂,
+  temperature, normalized light, and surface UV flux; the `Species` definition
+  implementing `SpeciesLike` with derived taxon strings, lineage metadata, and
+  an extensible `TraitSchema`; the `PositiveF64` quantity type with saturating
+  non-negative arithmetic; planetary and orbital `GlobalParams` deriving
+  surface gravity $g = G M / R^2$ from mass and diameter; and pure physics
+  helpers for Keplerian orbital insolation, Beer--Lambert ozone UV shielding,
+  greenhouse equilibrium, and barometric scale height), the grid storage
+  (coordinates with canonical neighborhood orders, planetary/toroidal/clamped
+  boundary topologies, chunk-first dense storage with 64×64 contiguous chunk
+  slices for parallel work splitting, double-buffered grids for snapshot-and-swap
+  phases), the `World` state, `WorldBuilder`, the `TickDriver`, and the *ports*
+  (traits) through which all simulation behavior is injected. The domain types
+  and grid storage are kept as modules of the kernel rather than as separate
+  crates: downstream implementors depend on the ports of the kernel anyway, and
+  a single kernel crate keeps the public surface coherent.
 - `pbma-sim`: default adapters implementing the kernel ports: a
   mass-conserving diffusion cellular automaton, a logistic population
   behavior, an overcrowding-driven migration policy, a deterministic
@@ -56,15 +62,20 @@ population behavior, migration, and metrics recording. Each phase receives a
 read-only context for one cell: the frozen environment snapshot of the
 previous tick, the neighbor environments in canonical order (north,
 north-east, east, south-east, south, south-west, west, north-west — the
-Moore ring, clockwise from north, where diagonal neighbors carry weight
-$1 / sqrt(2)$ in exchange computations since they are farther away by a
-factor of $sqrt(2)$), and the sorted populations of the cell. The kernel collects
-behavior deltas and migration fluxes into fresh buffers and applies them only
-after all computation has finished, then publishes the new environment and
-swaps buffers. The metrics phase is consumer-defined: the kernel hands the
-recorder the complete final world state of the tick, and the recorder decides
-what to extract — a few aggregates, detailed rows, or a verbatim snapshot of
-every cell on every tick. The kernel itself knows no metrics at all.
+Moore ring, clockwise from north, resolved under the configured boundary
+topology where diagonal neighbors carry weight $1 / sqrt(2)$ in exchange
+computations since they are farther away by a factor of $sqrt(2)$), geographic
+coordinates and instantaneous orbital insolation, and the sorted populations
+of the cell. The `World` holds a `DoubleBuffer<Cell>` organized in chunk-first
+order: phases read the immutable front buffer and write directly into
+pre-allocated back-buffer cells and per-chunk flux buffers across `rayon`
+workers without cloning the grid each tick. Migration fluxes are then merged
+in canonical chunk order before swapping buffers, preserving bit-identical
+results between single-threaded and parallel execution. The metrics phase is
+consumer-defined: the kernel hands the recorder the complete final world state
+of the tick, and the recorder decides what to extract — a few aggregates,
+detailed rows, or a verbatim snapshot of every cell on every tick. The kernel
+itself knows no metrics at all.
 
 == Determinism rules
 
@@ -172,30 +183,23 @@ identical metric hashes, a conservation test proves that diffusion neither
 creates nor destroys gas mass, and a bookkeeping test proves that migration
 moves population between cells without creating or destroying it. Finally,
 a benchmark simulates a 1000 × 1000 cell world (one million cells) and
-measures the per-tick runtime — about 225 milliseconds per tick for the
-full eight-neighbor environment phase with trait-resolving behavior and
-migration phases — providing the baseline that later parallel optimizations
-must improve upon.
+measures the per-tick runtime — about 113 milliseconds per tick for the
+full eight-neighbor environment phase across six gases with orbital insolation,
+trait-resolving behavior, and migration phases — down from 225 milliseconds in
+the initial single-threaded snapshot-cloning baseline.
 
 == Extensibility contract
 
 Downstream consumers extend the framework by implementing the kernel ports
-rather than modifying it. A new environment model, a behavior formula
-derived from offline reinforcement learning, or an alternative migration
-policy each plug in as an adapter behind the same trait boundary; the kernel
-and the existing binaries remain untouched. This is the property that makes
-the framework a product in its own right rather than a one-off simulation
-script.
-
-Two further extension seams are planned. Species themselves will become
-interface-like: instead of one fixed struct, a species will expose its
-taxon — derived from its trait values, e.g. `ot:0.2;tt:0.1` — and its
-traits through methods, and the trait set itself will become
-runtime-extensible so consumers can define additional species parameters
-without patching the kernel. Similarly, the set of tracked gases will move
-from a fixed enum to a runtime-registered collection, with the built-in
-gases as defaults. Both are tracked as design items in the roadmap and do
-not constrain the experiments of this thesis.
+rather than modifying it. A new environment model, a decision-model or
+formula-driven behavior adapter, or an alternative migration policy each plug in
+as an adapter behind the same trait boundary; the kernel and the existing
+binaries remain untouched. Furthermore, `GasRegistry` and `TraitSchema` allow
+consumers to register additional atmospheric gases and species traits at world
+setup via `WorldBuilder`, while `SpeciesLike` exposes derived taxon descriptors
+and lineage ancestry without patching the kernel. This is the property that
+makes the framework a reusable experimental platform rather than a one-off
+simulation script.
 
 
 == Diffusion cellular automaton

@@ -1,23 +1,37 @@
 //! Pure domain types for the PBMA simulation.
 //!
-//! These types are intentionally behavior-free: they define the vocabulary
-//! of the simulation (environment state of a cell, species definitions,
-//! population amounts, global world parameters) without any simulation
-//! machinery.
+//! These types define the vocabulary of the simulation (environment state of a
+//! cell, extensible gas and trait registries, species definitions, population
+//! amounts, planetary/orbital parameters, and physical helper functions).
 
 /// Non-negative amounts with saturating arithmetic.
 pub mod quantity;
 
-/// Environment state held by a single grid cell.
+/// Environment state held by a single grid cell and extensible gas registry.
 pub mod env;
 
-/// Species definition and population bookkeeping.
+/// Species definition, extensible trait schema, and population bookkeeping.
 pub mod species;
 
-/// Global simulation parameters (gravity, day length, ...).
+/// Global, planetary, and orbital simulation parameters.
 pub mod params;
 
-pub use env::{EnvState, GASES, Gas};
-pub use params::GlobalParams;
+/// Pure planetary physics helpers (orbital insolation, ozone UV shielding,
+/// radiative greenhouse balance, barometric scale height).
+pub mod physics;
+
+pub use env::{EnvState, GasAmounts, GasDef, GasId, GasRegistry, INLINE_GASES};
+pub use params::{
+    GRAVITATIONAL_CONSTANT, GlobalParams, IDEAL_GAS_CONSTANT, OrbitParams, PlanetParams,
+    SOLAR_CONSTANT_WM2, STEFAN_BOLTZMANN,
+};
+pub use physics::{
+    Insolation, OrbitalState, barometric_scale_height_m, cell_insolation, mean_molar_mass_kg,
+    orbital_state, ozone_amount, ozone_net_delta, radiative_equilibrium_temperature,
+    surface_uv_fraction,
+};
 pub use quantity::PositiveF64;
-pub use species::{Population, Species, SpeciesId, SpeciesTraits};
+pub use species::{
+    INLINE_TRAITS, Population, Species, SpeciesId, SpeciesLike, SpeciesTraits, TraitDef, TraitId,
+    TraitSchema,
+};

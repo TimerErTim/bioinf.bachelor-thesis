@@ -2,52 +2,26 @@
 
 use std::hint::black_box;
 
-use pbma_core::model::{EnvState, GlobalParams, Population, PositiveF64, Species, SpeciesTraits};
-use pbma_core::{TickDriver, World};
+use pbma_core::grid::coords::Topology;
+use pbma_core::model::{GasId, Species, SpeciesTraits};
+use pbma_core::{TickDriver, World, WorldBuilder};
 use pbma_sim::{DiffusionStep, LogisticBehavior, OvercrowdingMigration, VecRecorder};
 
 /// Builds a 1000x1000 world with one seeded species.
 fn world_1m() -> World {
-    let params = GlobalParams {
-        gravity: 9.81,
-        day_length_ticks: 240,
-        axial_tilt: 0.0,
-        diffusion_coefficient: 0.2,
-        light_intensity: 1.0,
-    };
-    let initial = EnvState {
-        gases: [
-            PositiveF64::new(21.0),
-            PositiveF64::new(0.04),
-            PositiveF64::ZERO,
-            PositiveF64::new(1.0),
-        ],
-        temperature: 300.0,
-        light: 0.5,
-    };
-    let mut world = World::new(1000, 1000, initial, params);
-    let id = world
-        .registry_mut()
-        .insert(Species {
-            name: "bench".into(),
-            traits: SpeciesTraits {
-                optimal_temperature: 300.0,
-                temperature_tolerance: 10.0,
-                growth_rate: 0.1,
-                crowding_threshold: 100.0,
-            },
-        })
-        .expect("fresh registry");
-    for cell in world.cells_mut() {
-        cell.populations.push((
-            id,
-            Population {
-                amount: PositiveF64::new(10.0),
-            },
-        ));
-        cell.populations.sort_by_key(|(sid, _)| sid.raw);
-    }
-    world
+    WorldBuilder::new(1000, 1000)
+        .topology(Topology::Planetary)
+        .diffusion(0.14)
+        .temperature_and_light(300.0, 0.5)
+        .gas(GasId::O2, 21.0)
+        .gas(GasId::CO2, 0.04)
+        .gas(GasId::H2O, 1.0)
+        .seed_species_everywhere(
+            Species::new("bench", SpeciesTraits::new(300.0, 10.0, 0.1, 100.0)),
+            10.0,
+        )
+        .build()
+        .expect("valid benchmark world")
 }
 
 fn main() {
@@ -55,12 +29,12 @@ fn main() {
     let recorder = std::rc::Rc::new(std::cell::RefCell::new(VecRecorder::default()));
     struct RcRecorder(std::rc::Rc<std::cell::RefCell<VecRecorder>>);
     impl pbma_core::ports::Recorder for RcRecorder {
-        fn record(&mut self, tick: u64, world: &pbma_core::World) {
+        fn record(&mut self, tick: u64, world: &World) {
             self.0.borrow_mut().record(tick, world);
         }
     }
     let mut driver = TickDriver::new(
-        Box::new(DiffusionStep::new(0.2)),
+        Box::new(DiffusionStep::new(0.14)),
         Box::new(LogisticBehavior),
         Box::new(OvercrowdingMigration),
         Box::new(RcRecorder(std::rc::Rc::clone(&recorder))),

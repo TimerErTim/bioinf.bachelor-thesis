@@ -3,12 +3,13 @@
 use std::io::Write;
 use std::path::PathBuf;
 
-use pbma_core::{TickDriver, World};
+use pbma_core::grid::coords::Topology;
+use pbma_core::model::{GasId, Species, SpeciesTraits};
+use pbma_core::{TickDriver, World, WorldBuilder};
 use pbma_sim::{DiffusionStep, LogisticBehavior, OvercrowdingMigration, VecRecorder};
 use serde::Deserialize;
 
 /// Simulation configuration, loaded from a TOML file or built from CLI args.
-/// Missing fields fall back to [`Config::default`] values via `#[serde(default)]`.
 #[derive(Debug, Clone, Deserialize)]
 #[serde(default)]
 pub struct Config {
@@ -18,9 +19,9 @@ pub struct Config {
     pub height: u32,
     /// Number of ticks to simulate.
     pub ticks: u64,
-    /// Seed for deterministic runs (reserved for stochastic phases).
+    /// Seed for deterministic runs.
     pub seed: u64,
-    /// Diffusion fraction per neighbor pair, clamped to [0, 0.25].
+    /// Diffusion fraction per neighbor pair.
     pub diffusion: f64,
     /// Initial temperature in kelvin for all cells.
     pub initial_temperature: f64,
@@ -37,7 +38,7 @@ impl Default for Config {
             height: 100,
             ticks: 100,
             seed: 42,
-            diffusion: 0.2,
+            diffusion: 0.14,
             initial_temperature: 300.0,
             initial_light: 0.5,
             output: None,
@@ -45,7 +46,6 @@ impl Default for Config {
     }
 }
 
-/// Entry: parse `--config path.toml` or defaults, run ticks, print CSV.
 fn main() {
     let mut config = Config::default();
     let mut args = std::env::args().skip(1);
@@ -67,50 +67,26 @@ fn main() {
 }
 
 fn run(config: Config) {
-    let params = pbma_core::model::GlobalParams {
-        gravity: 9.81,
-        day_length_ticks: 240,
-        axial_tilt: 0.0,
-        diffusion_coefficient: config.diffusion,
-        light_intensity: 1.0,
-    };
-    let initial = pbma_core::model::EnvState {
-        gases: [
-            pbma_core::model::PositiveF64::new(21.0), // O2
-            pbma_core::model::PositiveF64::new(0.04), // CO2
-            pbma_core::model::PositiveF64::ZERO,      // CH4
-            pbma_core::model::PositiveF64::new(1.0),  // H2O
-        ],
-        temperature: config.initial_temperature,
-        light: config.initial_light,
-    };
-    let mut world = World::new(config.width, config.height, initial, params);
-
-    // Seed one species evenly across the world.
-    let species = pbma_core::model::Species {
-        name: "pioneer".into(),
-        traits: pbma_core::model::SpeciesTraits {
-            optimal_temperature: config.initial_temperature,
-            temperature_tolerance: 10.0,
-            growth_rate: 0.1,
-            crowding_threshold: 100.0,
-        },
-    };
-    let species_id = match world.registry_mut().insert(species) {
-        Ok(id) => id,
-        Err(e) => die(&format!("register species: {e}")),
-    };
-    let seed_population = pbma_core::model::Population {
-        amount: pbma_core::model::PositiveF64::new(10.0),
-    };
-    for cell in world.cells_mut() {
-        cell.populations.push((species_id, seed_population));
-    }
-    cell_sort(&mut world);
+    let mut world = WorldBuilder::new(config.width, config.height)
+        .topology(Topology::Planetary)
+        .diffusion(config.diffusion)
+        .temperature_and_light(config.initial_temperature, config.initial_light)
+        .gas(GasId::O2, 21.0)
+        .gas(GasId::CO2, 0.04)
+        .gas(GasId::H2O, 1.0)
+        .seed_species_everywhere(
+            Species::new(
+                "pioneer",
+                SpeciesTraits::new(config.initial_temperature, 10.0, 0.1, 100.0),
+            ),
+            10.0,
+        )
+        .build()
+        .unwrap_or_else(|e| die(&format!("build world: {e}")));
 
     struct RcRecorder(std::rc::Rc<std::cell::RefCell<VecRecorder>>);
     impl pbma_core::ports::Recorder for RcRecorder {
-        fn record(&mut self, tick: u64, world: &pbma_core::World) {
+        fn record(&mut self, tick: u64, world: &World) {
             self.0.borrow_mut().record(tick, world);
         }
     }
@@ -126,7 +102,6 @@ fn run(config: Config) {
         driver.tick(&mut world, tick);
     }
 
-    // Final aggregated metrics row set + per-tick rows -> CSV.
     let mut out: Box<dyn Write> = match &config.output {
         Some(path) => Box::new(
             std::fs::File::create(path).unwrap_or_else(|e| die(&format!("create {path:?}: {e}"))),
@@ -137,13 +112,6 @@ fn run(config: Config) {
     for (tick, metric, value) in shared.borrow_mut().drain() {
         writeln!(out, "{tick},{metric},{value}")
             .unwrap_or_else(|e| die(&format!("write csv: {e}")));
-    }
-}
-
-/// Keeps the per-cell population ordering invariant after bulk seeding.
-fn cell_sort(world: &mut World) {
-    for cell in world.cells_mut() {
-        cell.populations.sort_by_key(|(id, _)| id.raw);
     }
 }
 
