@@ -129,3 +129,18 @@ src:whittaker-alpha-beta-diversity:
     issue: 2–3
     volume: 21
 
+src:whittaker-vegetation-1960:
+  type: article
+  title: Vegetation of the Siskiyou Mountains, Oregon and California
+  author: Whittaker, R. H.
+  date: 1960
+  page-range: 279-338
+  url: https://esajournals.onlinelibrary.wiley.com/doi/abs/10.2307/1943563
+  serial-number:
+    doi: https://doi.org/10.2307/1943563
+  parent:
+    type: periodical
+    title: Ecological Monographs
+    issue: 3
+    volume: 30
+

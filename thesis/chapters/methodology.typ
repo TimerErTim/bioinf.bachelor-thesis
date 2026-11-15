@@ -35,11 +35,11 @@ A cell holds a list of species and their amounts present in the cell.
 
 Evolutionary lineage with similar enough traits to meaningfully differ from other species.
 
-== Evaluation of different species
+=== Calculating species diversity
 
-As seen in @tbl:example-beta-gamma-alpha-calculation of @chp:ecosystem-diversities, the number of different $beta$-Diversities escalates with the amount of $n$ local Ecosystems as $vec(n, 2)$. Instead, @eq:beta-gamma-alpha-relation defines the general relationship between $alpha$-, $beta$-, and $gamma$-Diversities. This enables the usage of a single derived $beta$-Diversity value to evaluate the diversity across all ecosystems as average or individually. @src:whittaker-alpha-beta-diversity
+As seen in @tbl:example-beta-gamma-alpha-calculation of @chp:ecosystem-diversities, the number of different $beta$-Diversities escalates with the amount of $n$ local Ecosystems as $vec(n, 2)$. Instead, @eq:beta-gamma-alpha-relation defines the general relationship between $alpha$-, $beta$-, and $gamma$-Diversities. This enables the usage of a single derived $beta$-Diversity value to evaluate the diversity across all ecosystems as average or individually. @src:whittaker-alpha-beta-diversity @src:whittaker-vegetation-1960
 
-This is very suitable for evaluating the correctness of the first hypothesis in @chp:hypothesis, as the $beta$-Diversity exhibits two extreme cases:
+This is very suitable for evaluating the correctness of the first hypothesis in @chp:hypothesis, as this $beta$-Diversity exhibits two extreme cases:
 - *Minimum Differentiation ($beta = 1$)*: If every local ecosystem contains similar species as the global ecosystem, local diversity equals global diversity ($alpha = gamma$), resulting in a $beta$ of $1$. Therfore, the simulation should reach this value if the first hypothesis is correct.
 
 - *Maximum Differentiation ($beta = N$)*: If $N$ different local ecosystems share zero species in common, global diversity equals the sum of all local diversities ($gamma = alpha times N$), resulting in a $beta$ equal to the number of local ecosystems ($N$). Therefore, the simulation should reach this value if the first hypothesis is incorrect.
@@ -47,8 +47,6 @@ This is very suitable for evaluating the correctness of the first hypothesis in 
 $
   beta = gamma slash alpha
 $ <eq:beta-gamma-alpha-relation>
-
-
 
 == Approaches to Agent Control <approaches-agent-control>
 
@@ -71,7 +69,7 @@ Species <-> species and environment -> species interactions are instead answered
 
 The models receive the state of a cell (species present, population amounts, environmental conditions) and a set of typed questions and return a probability distribution over the possible options. These probabilities then parameterize the population update step (reproduction, predation, migration pressure, trait adaptation), which keeps the runtime decisions cheap, deterministic in shape, and inspectable.
 
-=== Species -> Environment: Hard Rule-Based
+== Species #sym.arrow.l.r Environment: Hard Rule-Based
 
 The reverse direction, in which species actively reshape their environment (e.g. oxygen production during the Great Oxidation Event), is deliberately *not* delegated to a learned model. It is modeled as hard, deterministic rule sets (to be defined), because:
 
