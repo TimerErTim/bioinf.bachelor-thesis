@@ -16,14 +16,84 @@ To realize this ambitious project, standard programming is not enough. The simul
 
 In summary, this thesis combines biology, environmental physics, and cutting-edge software engineering. It provides a computational tool to make the complex, often invisible gears of macroevolution tangible, helping us understand why our planet's biodiversity looks the way it does today—and how quickly it can collapse when the rules of nature change.
 
-== Research Questions <research-questions>
+== Ecosystem Diversities <chp:ecosystem-diversities>
+
+For quantifying the biodiversity within a geographical region, there exist three different measures:
+
+- *#math.alpha\-Diversity* describes the amount of species diversity within a particular area or ecosystem. It is usually expressed as the number of species. @src:whittaker-alpha-beta-diversity
+
+- *#math.beta\-Diversity* describes the amount of species diversity between ecosystems. It is usually expressed as the number of species that are unique to each area. @src:whittaker-alpha-beta-diversity
+
+- *#math.gamma\-Diversity* describes the amount of species diversity across all ecosystems of a large region. This number is typically derived by counting the total number of species, similar to the #math.alpha\-Diversity. @src:whittaker-alpha-beta-diversity
+
+#{
+  show: it => [#it <tbl:example-beta-gamma-alpha-calculation>]
+  show: figure.with(
+    caption: [Illustration of the calculation of $alpha$-, $beta$-, and $gamma$-Diversity],
+  )
+
+  let ec1_species = ("A", "B", "C", "D", "E", "F")
+  let ec2_species = ("F", "G", "H", "I")
+  let ec3_species = ("H", "I", "J")
+  let all_ecosystems = (ec1_species, ec2_species, ec3_species)
+  table(
+    columns: (auto,) + (1fr,) * 3,
+    fill: (x, y) => {
+      if y == 0 {
+        return gray.lighten(50%)
+      }
+
+      if calc.rem(y, 2) == 0 {
+        return gray.lighten(80%)
+      }
+    },
+    table.header[*Hypothetical Species*][*Ecosystem 1*][*Ecosystem 2*][*Ecosystem 3*],
+    ..for species in all_ecosystems.join().dedup().sorted() {
+      (
+        [#species],
+        ..all_ecosystems.map(ec => if ec.contains(
+          species,
+        ) [#sym.crossmark] else []),
+      )
+    },
+    [$alpha$-Diversity], ..all_ecosystems.map(ec => [#ec.dedup().len()]),
+    table.cell(rowspan: 2, align: horizon)[$beta$-Diversity],
+    ..(
+      ..for i in range(all_ecosystems.len() - 1) {
+        for j in range(all_ecosystems.len()) {
+          ((j, range(all_ecosystems.len()).filter(k => k != j).at(i)),)
+        }
+      },
+    ).map(((i, j)) => [
+      #let this_ecosystem = all_ecosystems.at(i)
+      #let target_ecosystem = all_ecosystems.at(j)
+      #[#set text(size: 0.8em)
+        vs. Ecosystem #(j + 1):]
+      #(
+        (this_ecosystem + target_ecosystem).dedup().len()
+          - this_ecosystem
+            .filter(species => target_ecosystem.contains(species))
+            .len()
+      )
+    ]),
+    [$gamma$-Diversity],
+    table.cell(colspan: all_ecosystems.len())[#(
+      all_ecosystems.join().dedup().len()
+    )],
+  )
+}
+
+An illustrative example of their calculation is given in @tbl:example-beta-gamma-alpha-calculation.
+
+
+== Research Questions <chp:research-questions>
 
 #grid(
   columns: (auto, 1fr),
   inset: (y: 0.65em),
-  row-gutter: 0.5em,
+  gutter: 0.5em,
   align: (left, left),
-  [*RQ1*\ Research Question 1],
+  [*RQ1*],
   [*How can species-to-species and environment-to-species interaction be approximated at scale without training a custom reinforcement learning model?*
 
     Instead of training a bespoke RL policy, population-level interaction decisions are answered by small, open-source, typesafe decision models (so-called "System 1" decision models, e.g. JevK5 or a fine-tuned variant of Laya). These models receive the state of a cell and a set of typed questions (yes/no, choice, score) and return calibrated probabilities in a single forward pass, without generating text.],
@@ -46,9 +116,14 @@ In summary, this thesis combines biology, environmental physics, and cutting-edg
 - Hard rule-based modeling of species-to-environment interaction.
 - Evaluation of whether the simulation reproduces plausible macroevolutionary dynamics (e.g. the Great Oxidation Event) and the biodiversity homogenization hypothesis.
 
-== Hypothesis
 
-#math.alpha\-Diversity \~ #math.gamma\-Diversity
+== Hypothesis <chp:hypothesis>
+
+As an extension of the research questions in @chp:research-questions, we expect the following behavior of the simulation:
+
++ Under hyperoptimal living conditions, the $alpha$-Diversity is close to equal to the $gamma$-Diversity.
++ Under harsh living conditions, the $alpha$-Diversity is significantly lower than the $gamma$-Diversity, exhibiting a high level of specialization.
++ Hyperoptimal living conditions result in a higher $gamma$-Diversity than harsh living conditions.
 
 Additionally, as a secondary expectation tied to RQ3: the generalistic decision models will be applicable to ecological interaction decisions only to a limited degree---expect transfer gaps and characteristic failure patterns that reveal how much (or how little) high-level biological and systems understanding such models actually encode.
 

@@ -112,3 +112,20 @@ src-agentbased-populationbased-2012:
     page-range: 223-255
   serial-number:
     doi: 10.3233/MGS-2012-0193
+  
+src:whittaker-alpha-beta-diversity:
+  type: article
+  title: EVOLUTION AND MEASUREMENT OF SPECIES DIVERSITY
+  author: Whittaker, R. H.
+  date: 1972
+  page-range: 213-251
+  url: https://onlinelibrary.wiley.com/doi/abs/10.2307/1218190
+  serial-number:
+    doi: https://doi.org/10.2307/1218190
+  abstract: 'Summary Given a resource gradient (e.g. light intensity, prey size) in a community, species evolve to use different parts of this gradient; competition between them is thereby reduced. Species relationships in the community may be conceived in terms of a multidimensional coordinate system, the axes of which are the various resource gradients (and other aspects of species relationships to space, time, and one another in the community). This coordinate system defines a hyperspace, and the range of the space that a given species occupies is its niche hypervolume, as an abstract characterization of its intra-community position, or niche. Species evolve toward difference in niche, and consequently toward difference in location of their hypervolumes in the niche hyperspace. Through evolutionary time additional species can fit into the community in niche hypervolumes different from those of other species, and the niche hyperspace can become increasingly complex. Its complexity relates to the community''s richness in species, its alpha diversity. Species differ in the proportions of the niche hyperspace they are able to occupy and the share of the community''s resources they utilize. The share of resources utilized is expressed in species'' productivities, and when species are ranked by relative productivity (or some other measurement) from most to least important, importance-value or dominance-diversity curves are formed. Three types of curves may represent manners in which resources are divided among species: (a) niche pre-emption with strong dominance, expressed in a geometric series, (b) random boundaries between niches, expressed in the MacArthur distribution, and (c) determination of relative importance by many factors, so that species form a frequency distribution on a logarithmic base of importance values, a lognormal distribution. The forms of importance-value curves do not permit strong inference about resource division, but are of interest for their expression of species relationships and bearing on measurement of diversity.'
+  parent:
+    type: periodical
+    title: TAXON
+    issue: 2–3
+    volume: 21
+

@@ -35,6 +35,21 @@ A cell holds a list of species and their amounts present in the cell.
 
 Evolutionary lineage with similar enough traits to meaningfully differ from other species.
 
+== Evaluation of different species
+
+As seen in @tbl:example-beta-gamma-alpha-calculation of @chp:ecosystem-diversities, the number of different $beta$-Diversities escalates with the amount of $n$ local Ecosystems as $vec(n, 2)$. Instead, @eq:beta-gamma-alpha-relation defines the general relationship between $alpha$-, $beta$-, and $gamma$-Diversities. This enables the usage of a single derived $beta$-Diversity value to evaluate the diversity across all ecosystems as average or individually. @src:whittaker-alpha-beta-diversity
+
+This is very suitable for evaluating the correctness of the first hypothesis in @chp:hypothesis, as the $beta$-Diversity exhibits two extreme cases:
+- *Minimum Differentiation ($beta = 1$)*: If every local ecosystem contains similar species as the global ecosystem, local diversity equals global diversity ($alpha = gamma$), resulting in a $beta$ of $1$. Therfore, the simulation should reach this value if the first hypothesis is correct.
+
+- *Maximum Differentiation ($beta = N$)*: If $N$ different local ecosystems share zero species in common, global diversity equals the sum of all local diversities ($gamma = alpha times N$), resulting in a $beta$ equal to the number of local ecosystems ($N$). Therefore, the simulation should reach this value if the first hypothesis is incorrect.
+
+$
+  beta = gamma slash alpha
+$ <eq:beta-gamma-alpha-relation>
+
+
+
 == Approaches to Agent Control <approaches-agent-control>
 
 How to update the population's attributes, specifically amount present and evolution over time?
@@ -70,7 +85,7 @@ Since these models are trained on general-purpose decision data rather than ecol
 
 == Self-Supervised MARL
 
-*Note:* This direction was considered as the basis for a custom reinforcement learning model, but a custom RL model is no longer trained in this work (see @approaches-agent-control). The intrinsic-motivation concepts below remain relevant as inspiration for the typed questions posed to the decision models, and for the secondary research question on their high-level biological and systems understanding (@research-questions).
+*Note:* This direction was considered as the basis for a custom reinforcement learning model, but a custom RL model is no longer trained in this work (see @approaches-agent-control). The intrinsic-motivation concepts below remain relevant as inspiration for the typed questions posed to the decision models, and for the secondary research question on their high-level biological and systems understanding (@chp:research-questions).
 
 Wenn biologische Organismen in eine völlig neue Umgebung geworfen werden, haben sie keinen zentralen "Score", den sie optimieren. Sie werden durch intrinsische Reize gesteuert. In dezentralen MARL-Systemen lässt sich das abbilden, indem man Agenten nicht für ein externes Ziel belohnt, sondern für die Informationsverarbeitung.
 
