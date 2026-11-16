@@ -21,10 +21,18 @@ run = ["cargo nextest run --workspace"]
 description = "Format the typst code"
 run = ["typstyle -i ./ --timing"]
 
-[tasks."export-thesis"]
+[tasks."export:thesis"]
 description = "Export the document to PDF"
 env = { THESIS_TITLE = "{{ vars.THESIS_TITLE }}" }
 run = [
     'typst compile thesis/main.typ --format pdf --input "title=$THESIS_TITLE" --pdf-standard a-3u "Tim Peko BSc Bioinformatics Thesis - {{ env.THESIS_TITLE }}.pdf"',
     'typst compile thesis/main.typ --format pdf --input "title=$THESIS_TITLE" --pdf-standard a-3u --input "printing=true" "Tim Peko BSc Bioinformatics Thesis Print - {{ env.THESIS_TITLE }}.pdf"'
+]
+
+[tasks."export:midterm-presentation"]
+description = "Export the midterm presentation to PDF"
+dir = "presentations"
+run = [
+    'typst compile --format pdf midterm.typ midterm_slides.pdf --input x-handout=false',
+    'typst compile --format pdf midterm.typ midterm_handout.pdf --input x-handout=true'
 ]
