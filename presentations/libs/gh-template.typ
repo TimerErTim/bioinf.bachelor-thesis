@@ -1,12 +1,10 @@
-// ============================================================
-// gh-minimal-slides — GitHub-readme-style slide library for Typst (Touying)
+// gh-minimal-slides — static GitHub-readme-style slide library for Typst
 // ------------------------------------------------------------
-// Ported from a React/HTML reference deck. One file, no transitive
-// imports beyond `@preview/touying`. Use it like:
+// Ported from a React/HTML reference deck. The template uses only Typst
+// built-ins; register() configures page size and theme, and each slide
+// function emits one static page.
 //
-//   #import "@preview/touying:0.7.3": *
 //   #import "@preview/gh-minimal-slides:0.1.0" as gh
-//
 //   #show: gh.register.with(theme: "dark", accent: "purple", density: "comfy")
 //
 //   #gh.cover-slide(title: [Title], badges: ("v1.0.0", "MIT", "build: passing"))
@@ -14,7 +12,6 @@
 //   - first
 //   - second
 //   ]
-//   ...
 //
 // All public API is at the bottom. Sections in this file:
 //   1. Palette tokens (light/dark)
@@ -24,10 +21,8 @@
 //   5. Reusable building blocks (code, links, syntax helpers)
 //   6. Internal layout helpers (frame chrome, headings, pills)
 //   7. Slide functions
-//   8. register() — the Touying entry point
+//   8. register() — page and theme configuration
 // ============================================================
-
-#import "@preview/touying:0.7.3": *
 
 // ------------------------------------------------------------
 // 1. PALETTE
@@ -77,8 +72,8 @@
 // ------------------------------------------------------------
 // 3. TYPE & SPACING
 // ------------------------------------------------------------
-//
-// Page is 1152 x 648 pt (Touying default 16:9). All sizes derived from
+
+// Page is 1152 x 648 pt (16:9). All sizes derived from
 // the JSX TYPE_SCALE in pixels at 1920 x 1080, scaled by 0.75 so the
 // proportional weights survive the smaller surface.
 
@@ -344,28 +339,23 @@
   )
 }
 
-// Top header — deck title left (muted grey), `nn / nn` right (subtle).
-// The deck title comes from register()'s `title` arg and is shared across
-// every chromed slide; per-slide H2 headings remain in the body.
-#let _header(n, total, ctx) = context {
-  let resolved-n = if n == auto { utils.slide-counter.get().first() } else { n }
-  let resolved-total = if total == auto { utils.last-slide-counter.final().first() } else { total }
-  block(width: 100%)[
-    #grid(columns: (1fr, auto), align: (left + horizon, right + horizon),
-      text(size: ctx.ts.micro, fill: ctx.palette.fg-muted, ctx.title),
-      if resolved-n != none and resolved-total != none {
-        text(font: _font-mono, size: ctx.ts.micro, fill: ctx.palette.fg-subtle,
-          _pad2(resolved-n) + " / " + _pad2(resolved-total))
-      } else { [] },
-    )
-  ]
-}
+// Top header — deck title left (muted grey), optional `nn / nn` right.
+// Page numbering is explicit because these slides are static Typst pages.
+#let _header(n, total, ctx) = block(width: 100%)[
+  #grid(columns: (1fr, auto), align: (left + horizon, right + horizon),
+    text(size: ctx.ts.micro, fill: ctx.palette.fg-muted, ctx.title),
+    if n != none and total != none {
+      text(font: _font-mono, size: ctx.ts.micro, fill: ctx.palette.fg-subtle,
+        _pad2(n) + " / " + _pad2(total))
+    } else { [] },
+  )
+]
 
 // Generic frame: outer slide insets, optional deck-title header. Body
 // receives the full content area below the header.
-#let _frame(n: auto, total: auto, body) = context {
+#let _frame(n: none, total: none, body) = context {
   let ctx = _gh-state.get()
-  let show-header = n != none and ctx.title != none
+  let show-header = ctx.title != none
   block(
     width: 100%,
     height: 100%,
@@ -386,11 +376,10 @@
 // ------------------------------------------------------------
 // 7. SLIDE FUNCTIONS
 // ------------------------------------------------------------
-//
-// All slide functions wrap `touying-slide-wrapper` so they integrate with
-// Touying's slide-counting and config inheritance. Layout decisions all
-// happen inside a `context` block reading `_gh-state` so theme switches
-// at register-time cascade through every slide without per-call args.
+
+// Slide functions emit static pages. Layout decisions happen inside
+// `context` blocks reading `_gh-state` so theme settings cascade through
+// every slide without per-call theme arguments.
 
 // 01 — Cover.
 // `badges`: array of (text, kind?) where kind is one of "default",
@@ -401,74 +390,69 @@
   badges: ("v1.0.0", ("MIT license", "accent"), ("build: passing", "success"), "docs"),
   footer-left: "@author · 2026",
   footer-right: "↓ scroll  ·  → next",
-) = touying-slide-wrapper(self => {
-  touying-slide(self: self, context {
-    let ctx = _gh-state.get()
-    let badge-of(b) = {
-      let txt = if type(b) == array { b.at(0) } else { b }
-      let kind = if type(b) == array { b.at(1) } else { "default" }
-      let color = if kind == "accent" { ctx.accent }
-                  else if kind == "success" { ctx.palette.success }
-                  else { ctx.palette.fg-muted }
-      _pill(txt, color: color, ctx: ctx)
+) = context {
+  let ctx = _gh-state.get()
+  let badge-of(b) = {
+    let txt = if type(b) == array { b.at(0) } else { b }
+    let kind = if type(b) == array { b.at(1) } else { "default" }
+    let color = if kind == "accent" { ctx.accent }
+                else if kind == "success" { ctx.palette.success }
+                else { ctx.palette.fg-muted }
+    _pill(txt, color: color, ctx: ctx)
+  }
+  let badges-row = {
+    for (i, b) in badges.enumerate() {
+      badge-of(b)
+      if i + 1 < badges.len() { h(8pt) }
     }
-    let badges-row = {
-      for (i, b) in badges.enumerate() {
-        badge-of(b)
-        if i + 1 < badges.len() { h(8pt) }
-      }
-    }
-    block(
-      width: 100%, height: 100%,
-      inset: (top: ctx.sp.pad-top, bottom: ctx.sp.pad-bottom, x: ctx.sp.pad-x),
-    )[
-      #stack(
-        text(font: _font-mono, size: ctx.ts.micro, fill: ctx.accent,
-             tracking: 0.5pt, kicker),
-        v(1fr),
-        block(width: 100%)[
-          #set text(size: ctx.ts.hero, weight: 700, fill: ctx.palette.fg-default,
-                    tracking: -1.5pt, top-edge: "ascender")
-          #set par(leading: 0.4em)
-          #title
-        ],
-        v(ctx.sp.title-gap),
-        block(width: 100%, badges-row),
-        v(1fr),
-        block(width: 100%, grid(columns: (1fr, auto),
-          text(font: _font-mono, size: ctx.ts.micro,
-               fill: ctx.palette.fg-muted, footer-left),
-          text(font: _font-mono, size: ctx.ts.micro,
-               fill: ctx.palette.fg-muted, footer-right),
-        )),
-      )
-    ]
-  })
-})
+  }
+  block(
+    width: 100%, height: 100%,
+    inset: (top: ctx.sp.pad-top, bottom: ctx.sp.pad-bottom, x: ctx.sp.pad-x),
+  )[
+    #stack(
+      text(font: _font-mono, size: ctx.ts.micro, fill: ctx.accent,
+           tracking: 0.5pt, kicker),
+      v(1fr),
+      block(width: 100%)[
+        #set text(size: ctx.ts.hero, weight: 700, fill: ctx.palette.fg-default,
+                  tracking: -1.5pt, top-edge: "ascender")
+        #set par(leading: 0.4em)
+        #title
+      ],
+      v(ctx.sp.title-gap),
+      block(width: 100%, badges-row),
+      v(1fr),
+      block(width: 100%, grid(columns: (1fr, auto),
+        text(font: _font-mono, size: ctx.ts.micro,
+             fill: ctx.palette.fg-muted, footer-left),
+        text(font: _font-mono, size: ctx.ts.micro,
+             fill: ctx.palette.fg-muted, footer-right),
+      )),
+    )
+  ]
+}
 
 // 02 — Section divider.
 #let section-slide(
   number: "01",
   kicker: "Chapter",
   title: [Getting started],
-  n: auto,
-  total: auto,
-) = touying-slide-wrapper(self => {
-  touying-slide(self: self, _frame(n: n, total: total,
+  n: none,
+  total: none,
+) = context {
+  _frame(n: n, total: total,
     block(width: 100%, height: 100%)[
       #context {
         let ctx = _gh-state.get()
         stack(
           v(1fr),
-          // § number
           text(font: _font-mono, size: ctx.ts.subtitle, fill: ctx.accent,
                "§ " + number),
           v(24pt),
-          // kicker
           text(size: ctx.ts.kicker, fill: ctx.palette.fg-muted,
                tracking: 2.5pt, upper(kicker)),
           v(24pt),
-          // hero title
           block(width: 100%)[
             #set text(size: ctx.ts.hero, weight: 700, fill: ctx.palette.fg-default,
                       tracking: -1.5pt, top-edge: "ascender")
@@ -476,33 +460,26 @@
             #title
           ],
           v(20pt),
-          // 60% width hairline
           box(width: 60%, height: 1pt, fill: ctx.palette.border-muted),
           v(1fr),
         )
       }
     ]
-  ))
-})
+  )
+}
 
 // 03 — Deprecated legacy bullet list. Prefer `content-slide` with normal
-// Typst list markup and callback-style animation for new slides.
+// Typst list markup for new slides.
 // `items`: array of (label, body) tuples or (label: ..., body: ...) dicts.
 #let bullet-slide(
   title: [Unordered list],
   items: (),
-  incremental: false,
-  n: auto,
-  total: auto,
-) = touying-slide-wrapper(outer-self => {
-  let repeat-count = if incremental { items.len() + 1 } else { auto }
-  touying-slide(self: outer-self, repeat: repeat-count, sub-self => _frame(n: n, total: total,
+  n: none,
+  total: none,
+) = context {
+  _frame(n: n, total: total,
     context {
       let ctx = _gh-state.get()
-      // Item shapes accepted:
-      //   - `(label, body)`              — label/body split (bold label, em-dash, muted body)
-      //   - `(label: ..., body: ...)`    — same, dict form
-      //   - any single content `[...]`   — plain bullet, user controls all formatting inline
       let render-item(it) = {
         let is-label-body = (
           type(it) == dictionary
@@ -537,29 +514,20 @@
       }
       _h2(title, ctx)
       v(ctx.sp.title-gap)
-      if incremental {
-        for (i, it) in items.enumerate() {
-          utils.uncover(self: sub-self, str(i + 2) + "-", render-item(it))
-        }
-      } else {
-        for it in items { render-item(it) }
-      }
+      for it in items { render-item(it) }
     }
-  ))
-})
+  )
+}
 
 // 04 — Legacy accent-numbered list. Prefer `content-slide` with Typst's
-// native `+` enum markup for ordinary numbered lists. Keep this when you
-// specifically want tuple-shaped label/body items or incremental reveals.
+// native `+` enum markup for ordinary numbered lists.
 #let ordered-slide(
   title: [Installation],
   items: (),
-  incremental: false,
-  n: auto,
-  total: auto,
-) = touying-slide-wrapper(outer-self => {
-  let repeat-count = if incremental { items.len() + 1 } else { auto }
-  touying-slide(self: outer-self, repeat: repeat-count, sub-self => _frame(n: n, total: total,
+  n: none,
+  total: none,
+) = context {
+  _frame(n: n, total: total,
     context {
       let ctx = _gh-state.get()
       let render-item(i, it) = {
@@ -582,26 +550,20 @@
       }
       _h2(title, ctx)
       v(ctx.sp.title-gap)
-      if incremental {
-        for (i, it) in items.enumerate() {
-          utils.uncover(self: sub-self, str(i + 2) + "-", render-item(i, it))
-        }
-      } else {
-        for (i, it) in items.enumerate() { render-item(i, it) }
-      }
+      for (i, it) in items.enumerate() { render-item(i, it) }
     }
-  ))
-})
+  )
+}
 
 // 05 — Blockquote.
 #let quote-slide(
   title: [Blockquote],
   body: [],
   attribution: none,
-  n: auto,
-  total: auto,
-) = touying-slide-wrapper(self => {
-  touying-slide(self: self, _frame(n: n, total: total,
+  n: none,
+  total: none,
+) = context {
+  _frame(n: n, total: total,
     context {
       let ctx = _gh-state.get()
       block(width: 100%, height: 100%)[
@@ -624,8 +586,8 @@
         )
       ]
     }
-  ))
-})
+  )
+}
 
 // 06 — Legacy code block slide. Prefer `content-slide` with
 // `terminal-block` for new code and terminal UI.
@@ -636,10 +598,10 @@
   lines: (),
   line-numbers: false,
   caption: none,
-  n: auto,
-  total: auto,
-) = touying-slide-wrapper(self => {
-  touying-slide(self: self, _frame(n: n, total: total,
+  n: none,
+  total: none,
+) = context {
+  _frame(n: n, total: total,
     context {
       let ctx = _gh-state.get()
       stack(
@@ -655,14 +617,13 @@
         },
       )
     }
-  ))
-})
+  )
+}
 
 // 07 — Table.
 // `headers`: array of strings. `rows`: array of arrays (cells per row).
-// `value-colors`: optional dict mapping the value of column 0 to a color
-//   or semantic color name (`"accent"`, `"success"`, `"warning"`, `"danger"`).
-//   When set, column-0 cells render in mono + the matched color.
+// `value-colors`: optional dict mapping column-0 values to colors or
+// semantic names (`"accent"`, `"success"`, `"warning"`, `"danger"`).
 #let table-slide(
   title: [Endpoints],
   headers: ("Method", "Path", "Status", "Description"),
@@ -670,12 +631,10 @@
   columns: none,
   value-colors: none,
   method-colors: none,
-  animation: false,
-  n: auto,
-  total: auto,
-) = touying-slide-wrapper(outer-self => {
-  let repeat-count = if animation and rows.len() > 0 { rows.len() + 1 } else { auto }
-  touying-slide(self: outer-self, repeat: repeat-count, sub-self => _frame(n: n, total: total,
+  n: none,
+  total: none,
+) = context {
+  _frame(n: n, total: total,
     context {
       let ctx = _gh-state.get()
       let resolved-colors = if value-colors != none { value-colors }
@@ -691,9 +650,6 @@
       let resolved-columns = if columns != none { columns }
       else if headers.len() == 4 { (1.2fr, 3fr, 1fr, 4fr) }
       else { range(headers.len()).map(_ => 1fr) }
-      // Tabular `grid.cell` directly inside grid lets the column widths
-      // (fractions) actually allocate space — wrapping each cell in a
-      // block(width: 100%) collapses auto columns to their min content.
       let header-cell(h) = grid.cell(
         fill: ctx.palette.bg-neutral-muted,
         inset: (x: 16pt, y: 12pt),
@@ -724,12 +680,7 @@
       }
       let header-cells = headers.map(header-cell)
       let body-cells = rows.enumerate().map(((i, row)) => {
-        let row-cells = row.enumerate().map(((j, cell)) => body-cell(i, j, cell))
-        if animation {
-          row-cells.map(cell => utils.uncover(self: sub-self, str(i + 2) + "-", cell))
-        } else {
-          row-cells
-        }
+        row.enumerate().map(((j, cell)) => body-cell(i, j, cell))
       }).flatten()
       stack(
         _h2(title, ctx),
@@ -747,8 +698,8 @@
         ),
       )
     }
-  ))
-})
+  )
+}
 
 // 08 — Two-column comparison cards.
 // Each side: (kicker, color, stat, body). `color` can be a semantic color
@@ -757,10 +708,10 @@
   title: [Before & after],
   left:  ("Before", "danger",  "12m 04s", [Slow.]),
   right: ("After",  "success", "1m 47s",  [Fast.]),
-  n: auto,
-  total: auto,
-) = touying-slide-wrapper(self => {
-  touying-slide(self: self, _frame(n: n, total: total,
+  n: none,
+  total: none,
+) = context {
+  _frame(n: n, total: total,
     context {
       let ctx = _gh-state.get()
       let card(side) = {
@@ -790,22 +741,20 @@
         ),
       )
     }
-  ))
-})
+  )
+}
 
 // 09 — Image / figure with caption.
-// `body` is any content — typically `image("path")` or a placeholder
-// block. `caption` accepts content (use #gh-link inline if you want a
-// link).
+// `body` is any content — typically `image("path")` or a placeholder block.
 #let image-slide(
   title: [Figure 1 — system overview],
   body: none,
   caption: [],
   placeholder-text: "[ architecture diagram ]",
-  n: auto,
-  total: auto,
-) = touying-slide-wrapper(self => {
-  touying-slide(self: self, _frame(n: n, total: total,
+  n: none,
+  total: none,
+) = context {
+  _frame(n: n, total: total,
     context {
       let ctx = _gh-state.get()
       let figure-body = if body != none { body } else {
@@ -829,18 +778,17 @@
              fill: ctx.palette.fg-muted, caption),
       )
     }
-  ))
-})
+  )
+}
 
-// 10 — Stats grid (2 x 2).
-// Each stat: (value, label, delta).
+// 10 — Stats grid (2 x 2). Each stat: (value, label, delta).
 #let stats-slide(
   title: [Q1 metrics],
   stats: (),
-  n: auto,
-  total: auto,
-) = touying-slide-wrapper(self => {
-  touying-slide(self: self, _frame(n: n, total: total,
+  n: none,
+  total: none,
+) = context {
+  _frame(n: n, total: total,
     context {
       let ctx = _gh-state.get()
       let card(s) = {
@@ -862,7 +810,6 @@
                 fill: ctx.palette.fg-muted, upper(lbl))
         ]
       }
-      // Make a 2-column grid of cards.
       stack(
         _h2(title, ctx),
         v(ctx.sp.title-gap),
@@ -873,18 +820,17 @@
         ),
       )
     }
-  ))
-})
+  )
+}
 
-// 11 — Task list.
-// Each task: (done, label, meta).
+// 11 — Task list. Each task: (done, label, meta).
 #let task-slide(
   title: [Task list — v1 milestone],
   tasks: (),
-  n: auto,
-  total: auto,
-) = touying-slide-wrapper(self => {
-  touying-slide(self: self, _frame(n: n, total: total,
+  n: none,
+  total: none,
+) = context {
+  _frame(n: n, total: total,
     context {
       let ctx = _gh-state.get()
       stack(
@@ -898,7 +844,6 @@
                 columns: (28pt, 1fr, auto),
                 column-gutter: 18pt,
                 align: horizon + left,
-                // checkbox
                 box(
                   width: 22pt, height: 22pt,
                   radius: 4pt,
@@ -924,20 +869,17 @@
         }).flatten(),
       )
     }
-  ))
-})
+  )
+}
 
-// 12 — Alert callouts.
-// Each alert: (kind, color, body) where kind is e.g. "NOTE" / "TIP" /
-// "WARNING" / "CAUTION" and color is one of
-// ctx.palette.{success,warning,danger} or ctx.accent or a raw color.
+// 12 — Alert callouts. Each alert: (kind, color, body).
 #let alert-slide(
   title: [Alert callouts],
   alerts: (),
-  n: auto,
-  total: auto,
-) = touying-slide-wrapper(self => {
-  touying-slide(self: self, _frame(n: n, total: total,
+  n: none,
+  total: none,
+) = context {
+  _frame(n: n, total: total,
     context {
       let ctx = _gh-state.get()
       stack(
@@ -967,105 +909,31 @@
         }).flatten(),
       )
     }
-  ))
-})
-
-// Top-level animation steps in a normal Typst body. Intro content before the
-// first list item is static; each list item is one step; trailing content
-// after the list is one final step.
-#let _animation-steps(body) = {
-  if repr(body.func()) == "sequence" {
-    let children = body.fields().children
-    let item-count = children
-      .filter(child => repr(child.func()) == "item")
-      .len()
-    let seen-item = false
-    let has-trailing = false
-    for child in children {
-      if repr(child.func()) == "item" {
-        seen-item = true
-      } else if seen-item and repr(child) != "[ ]" {
-        has-trailing = true
-      }
-    }
-    item-count + if has-trailing { 1 } else { 0 }
-  } else if repr(body.func()) == "item" {
-    1
-  } else {
-    0
-  }
+  )
 }
 
-// Reveal top-level list items one by one, then reveal trailing content after
-// the list. Non-list intro content remains visible on every subslide.
-#let _animate-top-level-items(body, self) = {
-  if repr(body.func()) == "sequence" {
-    let out = ()
-    let i = 0
-    let seen-item = false
-    let tail = ()
-    for child in body.fields().children {
-      if repr(child.func()) == "item" {
-        seen-item = true
-        i += 1
-        out.push(utils.uncover(self: self, str(i + 1) + "-", child))
-      } else if seen-item {
-        tail.push(child)
-      } else {
-        out.push(child)
-      }
-    }
-    if tail.len() > 0 and tail.any(child => repr(child) != "[ ]") {
-      out.push(utils.uncover(self: self, str(i + 2) + "-", tail.sum(default: none)))
-    } else {
-      out.push(tail.sum(default: none))
-    }
-    out.sum(default: none)
-  } else if repr(body.func()) == "item" {
-    utils.uncover(self: self, "2-", body)
-  } else {
-    body
-  }
-}
-
-// 13 — Free-form content slide.
-// Use normal Typst markup in `body`, including nested lists.
+// 13 — Free-form content slide. Use normal Typst markup in `body`.
 #let content-slide(
   title: [Content],
-  n: auto,
-  total: auto,
-  repeat: auto,
-  animation: false,
+  n: none,
+  total: none,
   body,
-) = touying-slide-wrapper(outer-self => {
-  let repeat-count = if animation and type(body) != function {
-    let steps = _animation-steps(body)
-    if steps > 0 { steps + 1 } else { repeat }
-  } else {
-    repeat
-  }
-  touying-slide(self: outer-self, repeat: repeat-count, sub-self => _frame(n: n, total: total,
+) = context {
+  _frame(n: n, total: total,
     context {
       let ctx = _gh-state.get()
-      let rendered-body = if type(body) == function {
-        body(sub-self)
-      } else if animation {
-        _animate-top-level-items(body, sub-self)
-      } else {
-        body
-      }
       stack(
         _h2(title, ctx),
         v(ctx.sp.title-gap),
         block(width: 100%)[
           #set text(size: ctx.ts.body, fill: ctx.palette.fg-default)
           #set par(leading: 0.55em)
-          #rendered-body
+          #body
         ],
       )
     }
-  ))
-})
+  )
+}
 
 // 14 — Closing slide.
 // `links`: array of strings or content; each becomes "→ <link>".
@@ -1073,10 +941,10 @@
   kicker: "## Thanks",
   title: [Questions?],
   links: ("docs/", "issues/", "contact.md"),
-  n: auto,
-  total: auto,
-) = touying-slide-wrapper(self => {
-  touying-slide(self: self, _frame(n: n, total: total,
+  n: none,
+  total: none,
+) = context {
+  _frame(n: n, total: total,
     context {
       let ctx = _gh-state.get()
       block(width: 100%, height: 100%)[
@@ -1102,11 +970,11 @@
         )
       ]
     }
-  ))
-})
+  )
+}
 
 // ------------------------------------------------------------
-// 8. REGISTER — Touying entry point
+// 8. REGISTER — page and theme configuration
 // ------------------------------------------------------------
 
 #let register(
@@ -1115,39 +983,30 @@
   density: "comfy",        // "comfy" | "compact"
   aspect-ratio: "16-9",    // "16-9" | "4-3"
   title: none,             // deck title shown as the small grey header on every chromed slide
-  ..args,
   body,
 ) = {
   let ctx = _resolve(theme, accent, density, title)
   let (w, h) = if aspect-ratio == "4-3" { (1024pt, 768pt) }
                else { (1152pt, 648pt) }
-  show: touying-slides.with(
-    config-page(
-      width: w, height: h,
-      margin: 0pt,
-      fill: ctx.palette.bg-canvas,
-      header: none, footer: none,
-    ),
-    config-methods(
-      init: (self: none, body) => {
-        set text(
-          font: _font-sans,
-          weight: 400,
-          size: ctx.ts.body,
-          fill: ctx.palette.fg-default,
-        )
-        set par(leading: 0.55em)
-        show raw.where(block: false): it => code-inline(it.text)
-        show raw.where(block: true): it => terminal-block(
-          lang: it.lang,
-          body: it,
-        )
-        // Push live ctx into state so every slide's `context` block resolves it.
-        _gh-state.update(_ => ctx)
-        body
-      },
-    ),
-    ..args,
+  set page(
+    width: w, height: h,
+    margin: 0pt,
+    fill: ctx.palette.bg-canvas,
+    header: none, footer: none,
   )
+  set text(
+    font: _font-sans,
+    weight: 400,
+    size: ctx.ts.body,
+    fill: ctx.palette.fg-default,
+  )
+  set par(leading: 0.55em)
+  show raw.where(block: false): it => code-inline(it.text)
+  show raw.where(block: true): it => terminal-block(
+    lang: it.lang,
+    body: it,
+  )
+  // Push live ctx into state so every slide's `context` block resolves it.
+  _gh-state.update(_ => ctx)
   body
 }
