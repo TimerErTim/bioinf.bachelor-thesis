@@ -65,7 +65,7 @@
   kurzfassung: include "chapters/kurzfassung.typ",
   abstract: include "chapters/abstract.typ",
   appendix: include "chapters/appendix.typ",
-  bibl: bibliography("bib.yaml"), // Can be replaced with a BibLaTex file,
+  bibl: bibliography("../bib.yaml"), // Can be replaced with a BibLaTex file,
   abbreviations: abbr,
   include-print-size-control: printing,
 
