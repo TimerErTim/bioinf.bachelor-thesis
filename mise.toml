@@ -32,7 +32,8 @@ run = [
 [tasks."export:midterm-presentation"]
 description = "Export the midterm presentation to PDF"
 dir = "presentations"
+env = { THESIS_TITLE = "{{ vars.THESIS_TITLE }}" }
 run = [
-    'typst compile --format pdf midterm.typ midterm_slides.pdf --input x-handout=false',
-    'typst compile --format pdf midterm.typ midterm_handout.pdf --input x-handout=true'
+    'typst compile --format pdf midterm.typ midterm_slides.pdf --input x-handout=false --input "title=$THESIS_TITLE"',
+    'typst compile --format pdf midterm.typ midterm_handout.pdf --input x-handout=true --input "title=$THESIS_TITLE"'
 ]

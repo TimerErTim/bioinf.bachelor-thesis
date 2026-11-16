@@ -341,21 +341,20 @@
 
 // Top header — deck title left (muted grey), optional `nn / nn` right.
 // Page numbering is explicit because these slides are static Typst pages.
-#let _header(n, total, ctx) = block(width: 100%)[
+#let _header(ctx) = block(width: 100%)[
   #grid(columns: (1fr, auto), align: (left + horizon, right + horizon),
     text(size: ctx.ts.micro, fill: ctx.palette.fg-muted, ctx.title),
-    if n != none and total != none {
+    context {
       text(font: _font-mono, size: ctx.ts.micro, fill: ctx.palette.fg-subtle,
-        _pad2(n) + " / " + _pad2(total))
-    } else { [] },
+        _pad2(counter(page).get().first()))
+    },
   )
 ]
 
 // Generic frame: outer slide insets, optional deck-title header. Body
 // receives the full content area below the header.
-#let _frame(n: none, total: none, body) = context {
+#let _frame(body, show-header: false) = context {
   let ctx = _gh-state.get()
-  let show-header = ctx.title != none
   block(
     width: 100%,
     height: 100%,
@@ -366,7 +365,7 @@
     ),
   )[
     #if show-header {
-      _header(n, total, ctx)
+      _header(ctx)
       v(ctx.sp.pad-top - ctx.sp.chrome-top - ctx.ts.micro - 8pt)
     }
     #body
@@ -385,7 +384,7 @@
 // `badges`: array of (text, kind?) where kind is one of "default",
 //   "accent", "success" — controls color. Plain strings get "default".
 #let cover-slide(
-  title: [A minimal\ readme-style\ slide gallery.],
+  title,
   kicker: "# README.md",
   badges: ("v1.0.0", ("MIT license", "accent"), ("build: passing", "success"), "docs"),
   footer-left: "@author · 2026",
@@ -441,7 +440,7 @@
   n: none,
   total: none,
 ) = context {
-  _frame(n: n, total: total,
+  _frame(show-header: true,
     block(width: 100%, height: 100%)[
       #context {
         let ctx = _gh-state.get()
@@ -474,10 +473,8 @@
 #let bullet-slide(
   title: [Unordered list],
   items: (),
-  n: none,
-  total: none,
 ) = context {
-  _frame(n: n, total: total,
+  _frame(show-header: true,
     context {
       let ctx = _gh-state.get()
       let render-item(it) = {
@@ -524,10 +521,8 @@
 #let ordered-slide(
   title: [Installation],
   items: (),
-  n: none,
-  total: none,
 ) = context {
-  _frame(n: n, total: total,
+  _frame(show-header: true,
     context {
       let ctx = _gh-state.get()
       let render-item(i, it) = {
@@ -560,10 +555,8 @@
   title: [Blockquote],
   body: [],
   attribution: none,
-  n: none,
-  total: none,
 ) = context {
-  _frame(n: n, total: total,
+  _frame(show-header: true,
     context {
       let ctx = _gh-state.get()
       block(width: 100%, height: 100%)[
@@ -598,10 +591,8 @@
   lines: (),
   line-numbers: false,
   caption: none,
-  n: none,
-  total: none,
 ) = context {
-  _frame(n: n, total: total,
+  _frame(show-header: true,
     context {
       let ctx = _gh-state.get()
       stack(
@@ -631,10 +622,8 @@
   columns: none,
   value-colors: none,
   method-colors: none,
-  n: none,
-  total: none,
 ) = context {
-  _frame(n: n, total: total,
+  _frame(show-header: true,
     context {
       let ctx = _gh-state.get()
       let resolved-colors = if value-colors != none { value-colors }
@@ -708,10 +697,8 @@
   title: [Before & after],
   left:  ("Before", "danger",  "12m 04s", [Slow.]),
   right: ("After",  "success", "1m 47s",  [Fast.]),
-  n: none,
-  total: none,
 ) = context {
-  _frame(n: n, total: total,
+  _frame(
     context {
       let ctx = _gh-state.get()
       let card(side) = {
@@ -751,10 +738,8 @@
   body: none,
   caption: [],
   placeholder-text: "[ architecture diagram ]",
-  n: none,
-  total: none,
 ) = context {
-  _frame(n: n, total: total,
+  _frame(
     context {
       let ctx = _gh-state.get()
       let figure-body = if body != none { body } else {
@@ -785,10 +770,8 @@
 #let stats-slide(
   title: [Q1 metrics],
   stats: (),
-  n: none,
-  total: none,
 ) = context {
-  _frame(n: n, total: total,
+  _frame(
     context {
       let ctx = _gh-state.get()
       let card(s) = {
@@ -827,10 +810,8 @@
 #let task-slide(
   title: [Task list — v1 milestone],
   tasks: (),
-  n: none,
-  total: none,
 ) = context {
-  _frame(n: n, total: total,
+  _frame(
     context {
       let ctx = _gh-state.get()
       stack(
@@ -876,10 +857,8 @@
 #let alert-slide(
   title: [Alert callouts],
   alerts: (),
-  n: none,
-  total: none,
 ) = context {
-  _frame(n: n, total: total,
+  _frame(
     context {
       let ctx = _gh-state.get()
       stack(
@@ -915,11 +894,10 @@
 // 13 — Free-form content slide. Use normal Typst markup in `body`.
 #let content-slide(
   title: [Content],
-  n: none,
-  total: none,
   body,
 ) = context {
-  _frame(n: n, total: total,
+  _frame(
+    show-header: true,
     context {
       let ctx = _gh-state.get()
       stack(
@@ -941,10 +919,8 @@
   kicker: "## Thanks",
   title: [Questions?],
   links: ("docs/", "issues/", "contact.md"),
-  n: none,
-  total: none,
 ) = context {
-  _frame(n: n, total: total,
+  _frame(show-header: false,
     context {
       let ctx = _gh-state.get()
       block(width: 100%, height: 100%)[
