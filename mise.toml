@@ -11,7 +11,7 @@ TYPST_ROOT = "{{config_root}}"
 TYPST_FONT_PATHS = "{{config_root}}/thesis/fonts"
 
 [vars]
-THESIS_TITLE = "A population-based multi-agent approach for simulating large-scale system dynamics in discrete environments"
+THESIS_TITLE = "A population-based multi-agent framework for simulating large-scale system dynamics with decision models in discrete environments"
 
 [tasks.test]
 description = "Run the Rust test suite with cargo-nextest"

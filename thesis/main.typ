@@ -12,20 +12,19 @@
   title: title,
   author: "Tim Peko",
   description: ```
-  This work presents a new way to simulate how large systems behave over time in a grid-like world, using groups of agents that each stand for a species. The simulation is programmed in Rust.
+  This work investigates how to design large-scale, deterministic discrete simulation frameworks in conjunction with small, open-source typesafe decision models (JevK5, fine-tuned Laya), implemented in Rust.
 
   The core concepts are:
-  1. The environment is set up as a grid, similar to cellular automata, which allows things like gas concentrations to spread from cell to cell.
-  2. Each cell holds agents that represent whole species populations, not individual organisms.
+  1. A chunk-parallel cellular-automaton environment grid updated by physical and explicit rule-based dynamics.
+  2. Population-level multi-agent entities whose interaction decisions are delegated behind modular kernel ports to typed decision models or offline-distilled runtime formulas instead of custom reinforcement learning.
 
-  Time step updates of concept 1 are based on physical laws.
-  Time step updates of concept 2 are based on open-source typesafe decision models (JevK5, fine-tuned Laya) instead of a custom reinforcement learning model.
+  Planetary ecosystem dynamics—specifically biodiversity under hyperoptimal versus harsh conditions and species-driven atmospheric feedback—serve as the concrete evaluation scenario for testing scalability, reproducibility, and decision-model transfer.
   ```,
   keywords: (
-    "simulation",
+    "simulation framework",
     "cellular automata",
     "multi-agent systems",
-    "evolution",
+    "decision models",
     "population dynamics",
   ),
 )

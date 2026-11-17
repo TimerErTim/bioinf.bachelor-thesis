@@ -77,9 +77,9 @@ The reverse direction, in which species actively reshape their environment (e.g.
 - Deterministic rules keep the environment side reproducible and prevent uncontrolled feedback loops between the learned and rule-based directions.
 - Rule sets can be validated directly against geochemical records (e.g. atmospheric oxygen curves).
 
-=== Secondary Research Question: Applicability of Generalistic Decision Models
+=== RQ3: Transfer and Potential of Generalistic Decision Models
 
-Since these models are trained on general-purpose decision data rather than ecological domain data, their applicability in this area is an open question. As a small, non-focus subresearch question, this work examines how far such generalistic decision models transfer to ecological interaction decisions at all, and what can be inferred from their behavior---agreement with domain expectations, characteristic failure patterns, calibration drift---about the high-level biological or systems understanding such models actually possess.
+Since these models are trained on general-purpose decision data rather than ecological domain data, their transferability and runtime viability within a large-scale simulation framework is an open question (RQ3). Using the ecological testbed, this work examines how far generalistic typed decision models transfer to domain-specific interaction decisions, and what can be inferred from their behavior---agreement with domain expectations, characteristic failure patterns, calibration drift, and inference-versus-formula latency---about both the biological/systems understanding these models encode and the practical potential of coupling them with discrete simulation kernels.
 
 == Self-Supervised MARL
 

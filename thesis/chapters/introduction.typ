@@ -2,23 +2,21 @@
 
 == Motivation
 
-When we look at nature, we see an incredibly complex interplay of countless animal and plant species. They prey on one another, compete for space, adapt to temperatures, and change the world around them simply by existing. This process, known as evolution, has shaped our Earth over billions of years. However, modern science faces a fundamental problem: we cannot put an entire planet into a laboratory. If we want to understand how a lifeless rock turned into a green, oxygen-rich world full of life, we run into an issue of time. Real evolution is far too slow to be observed in real-time.
+Complex adaptive systems---from urban traffic and epidemiology to planetary ecosystems---share a fundamental computational challenge: macroscopic behavior emerges from millions of local interactions between agents and a spatially heterogeneous environment over long time horizons. Designing a simulation framework for such systems requires reconciling three competing demands:
 
-This is exactly where modern bioinformatics comes into play. The overarching goal of this research field is to move evolution into the computer. If we can program realistic virtual worlds, we can simulate millions of years of Earth's history in a single afternoon. This is not just a theoretical game; it has enormous practical value for the real world. By understanding the fundamental rules of how entire ecosystems build up or collapse, we can better predict how our modern environment will react to dramatic changes—whether caused by global climate change, invasive species, or pollution. We are essentially creating a "digital twin" of ecological networks to test the breaking points of life.
++ *Computational scale and reproducibility:* Individual-based simulations become prohibitively expensive once millions of entities must be tracked across large spatial domains, while purely aggregate differential equations discard spatial structure and local feedback. At the same time, scientific experiments demand bit-reproducible execution across parallel hardware.
++ *Expressive agent decision-making without bespoke RL overhead:* Hand-crafted heuristic rules quickly become brittle as state spaces grow, whereas training a custom multi-agent reinforcement learning (MARL) policy requires designing a defensible reward signal and investing heavily in training infrastructure rather than system-dynamics modeling.
++ *Architectural modularity for hybrid feedback:* Agents do not merely react to their surroundings; they actively reshape the environment, which in turn alters future selection pressures. Separating the simulation kernel from concrete physical rules, behavior models, and telemetry allows individual components to evolve and be compared fairly.
 
-This thesis focuses on developing exactly this kind of planetary simulation. The goal is to build a computational framework that can simulate the development of species on a global scale. However, instead of trying to calculate every single animal or every leaf on a tree—which would immediately overload even the most powerful supercomputers—this work introduces a clever, alternative approach. The virtual world is divided into a massive spatial grid. The cells in this grid do not contain individual animals, but rather entire populations of species acting as agents. If a species thrives, its "influence" in that region grows. If it gets too crowded or the climate becomes too harsh, a part of the population migrates to neighboring cells.
+This thesis addresses that engineering and modeling problem by designing a *population-based multi-agent (PBMA) simulation framework* in Rust. Instead of simulating every individual entity, the framework represents aggregated *populations per cell* on a discrete cellular-automaton grid. A small, deterministic, chunk-parallel kernel (`pbma-core`) owns the spatial storage, double-buffered tick orchestration, and extensible domain registries, while all domain dynamics---environmental physics, agent behavior, migration, evolution, and metrics---are injected through strictly typed ports.
 
-A central element of this simulation is the realization that life does not merely adapt to its environment; it actively rebuilds it. A famous example from Earth's history, which is modeled in this work, is the Great Oxidation Event. Early plant-like life forms produced massive amounts of oxygen. What is vital for us today was pure poison for the anaerobic world back then. By simply spreading, these plants changed the chemical composition of the entire atmosphere. This creates enormous evolutionary pressure: other species must adapt, flee, or go extinct. Such massive, global feedback loops between life and the environment will be realistically modeled in the system developed here.
+A central architectural hypothesis of this work is that local agent interaction decisions can be decoupled from bespoke RL training by delegating them to small, open-source, non-autoregressive *typed decision models* (e.g., JevK5 or a fine-tuned Laya checkpoint). Rather than generating free-form text, these models receive a structured cell context and answer constrained typed questions (yes/no, choice, or scalar score) in a single forward pass---either directly at runtime or distilled offline into cheap closed-form runtime formulas behind the same behavior port. Conversely, agent-to-environment effects are deliberately kept explicit and rule-based so that coupled feedback remains transparent, controllable, and verifiable.
 
-Furthermore, this thesis addresses a highly fascinating core question: What actually happens when life has it "too easy"? Our hypothesis is that under perfect global living conditions—meaning it is warm everywhere, there is plenty of food, and there are no extreme environmental barriers—the absolute biodiversity on the planet paradoxically decreases rather than increases. If nature does not force species to specialize in certain harsh niches, so-called "generalists" emerge. These are super-species that can survive almost anywhere. They spread unhindered across the globe and ultimately outcompete all other, weaker species. While there might be many animals in one specific location, looking at the planet as a whole, every region looks exactly the same. This theory of biological homogenization will be put to the test through the simulation.
-
-To realize this ambitious project, standard programming is not enough. The simulation is written in the modern, high-performance programming language Rust. Additionally, to ensure that the computer knows how the millions of populations should behave realistically, techniques from the field of artificial intelligence are utilized: instead of training a custom reinforcement learning model, the interaction decisions between populations---how a population reacts to its environment and to other species---are delegated to small, open-source decision models of the "Jev" type, which answer typed questions with calibrated probabilities in a single forward pass. The opposite direction, in which populations actively reshape their environment, is deliberately kept strictly rule-based.
-
-In summary, this thesis combines biology, environmental physics, and cutting-edge software engineering. It provides a computational tool to make the complex, often invisible gears of macroevolution tangible, helping us understand why our planet's biodiversity looks the way it does today—and how quickly it can collapse when the rules of nature change.
+To evaluate the framework and the potential of this decision-model technology under demanding conditions, this thesis uses *planetary macroevolution and biodiversity* as its concrete evaluation scenario. Ecological systems exhibit strong spatial coupling, long timescales that cannot be observed directly in a laboratory, and dramatic global feedback loops such as the Great Oxidation Event (GOE), where early oxygenic organisms reshaped the atmosphere and forced widespread adaptation or extinction. Within this testbed, we examine a concrete macroecological question: what happens to regional versus global biodiversity when living conditions become "hyperoptimal" everywhere? Under benign, spatially uniform conditions, generalist species may outcompete local specialists and homogenize communities across regions---a hypothesis that requires both large spatial grids and rich local interaction dynamics to test. Crucially, the framework is designed as an *exploratory experimental platform*, not a calibrated digital twin of Earth's history; the ecological scenarios serve to stress-test kernel scaling, hybrid feedback, and decision-model transferability.
 
 == Ecosystem Diversities <chp:ecosystem-diversities>
 
-For quantifying the biodiversity within a geographical region, there exist three different measures:
+To quantify biodiversity outcomes in the concrete evaluation scenario across geographical regions, three established measures are used:
 
 - *#math.alpha\-Diversity* describes the amount of species diversity within a particular area or ecosystem. It is usually expressed as the number of species. @src:whittaker-alpha-beta-diversity
 
@@ -94,36 +92,36 @@ An illustrative example of their calculation is given in @tbl:example-beta-gamma
   gutter: 0.5em,
   align: (left, left),
   [*RQ1*],
-  [*How can species-to-species and environment-to-species interaction be approximated at scale without training a custom reinforcement learning model?*
+  [*How can a large-scale discrete simulation framework be designed to couple a deterministic, parallelizable kernel with small, general-purpose typed decision models at scale without training a custom reinforcement learning policy?*
 
-    Instead of training a bespoke RL policy, population-level interaction decisions are answered by small, open-source, typesafe decision models (so-called "System 1" decision models, e.g. JevK5 or a fine-tuned variant of Laya). These models receive the state of a cell and a set of typed questions (yes/no, choice, score) and return calibrated probabilities in a single forward pass, without generating text.],
+    Rather than hard-coding all agent heuristics or building bespoke RL training loops, the kernel exposes typed ports that supply cell context and species traits to interchangeable adapters. Population-level decisions can be answered by small, open-source, non-autoregressive "System 1" decision models (e.g., JevK5 or a fine-tuned Laya checkpoint) returning calibrated probabilities for typed queries in a single forward pass, or by offline-distilled closed-form runtime formulas behind the same interface.],
 
   [*RQ2*],
-  [*How can the reverse direction, species-to-environment interaction, be captured?*
+  [*How can decision-model-driven agent behavior be cleanly combined with explicit, rule-based environmental feedback so that coupled system dynamics remain controllable, extensible, and bit-reproducible?*
 
-    Species actively reshape their environment (e.g. oxygen production during the Great Oxidation Event). This direction is deliberately modeled as hard, deterministic rule sets---to be defined---rather than learned behavior.],
+    In coupled spatial systems, agents actively modify their surroundings (e.g., metabolic oxygen production during a Great Oxidation Event). Keeping the agent-to-environment direction strictly deterministic and rule-based---while enforcing double-buffered snapshots, canonical iteration orders, and explicit seedable randomness in the kernel---prevents uncontrolled feedback instabilities and preserves bit-identical parallel execution.],
 
   [*RQ3*\ Research Question 3],
-  [*How far do such generalistic decision models transfer to ecological interaction decisions, and what does their behavior reveal about the biological or systems-level understanding these models have acquired?*
+  [*How far do general-purpose typed decision models transfer to domain-specific ecological decisions in a concrete evaluation scenario, and what do their accuracy, failure patterns, and runtime trade-offs reveal about this technology?*
 
-    A secondary, exploratory question: since these models are trained on general-purpose decision data rather than ecological domain data, their applicability in this domain is not self-evident. Deviations and failure patterns are of independent interest, as they hint at what high-level biological or systems understanding such generalistic models actually possess.],
+    Evaluating the framework on planetary biodiversity and atmospheric feedback tests both the software architecture and the decision-model paradigm itself. Because base decision models are trained on general-purpose decision data rather than ecological domain data, measuring where they succeed, where calibration drifts, and how inference latency compares against closed-form surrogates illuminates the practical potential and limits of this technology.],
 )
 
 == Goals
 
-- Development of a scalable, grid-based planetary simulation in Rust. The environment is updated by physical rules, species populations act as agents.
-- Approximation of species-to-species and environment-to-species interaction via open-source, typesafe decision models (JevK5, fine-tuned Laya) instead of a custom RL model.
-- Hard rule-based modeling of species-to-environment interaction.
-- Evaluation of whether the simulation reproduces plausible macroevolutionary dynamics (e.g. the Great Oxidation Event) and the biodiversity homogenization hypothesis.
+- Design and implement a modular, bit-reproducible, chunk-parallel simulation framework in Rust (`pbma-core`, `pbma-sim`) based on hexagonal ports, double-buffered grid storage, and extensible gas/trait registries.
+- Establish an interchangeable behavior-adapter boundary that supports closed-form baselines, offline-distilled runtime formulas, and small typed decision models (JevK5, fine-tuned Laya) without custom RL training.
+- Combine learned or formula-driven agent behavior with explicit, rule-based environmental physics and agent-to-environment feedback.
+- Validate the framework's scalability, determinism, and decision-model transferability on a concrete planetary biodiversity evaluation scenario (hyperoptimal versus harsh conditions measured via #math.alpha\-/#math.beta\-/#math.gamma\-diversity and a Great Oxidation Event feedback loop).
 
 
-== Hypothesis <chp:hypothesis>
+== Evaluation Scenario Hypotheses <chp:hypothesis>
 
-As an extension of the research questions in @chp:research-questions, we expect the following behavior of the simulation:
+To instantiate the framework on a concrete scientific testbed and address the research questions in @chp:research-questions, the planetary biodiversity evaluation scenario tests the following working expectations:
 
-+ Under hyperoptimal living conditions, the $alpha$-Diversity is close to equal to the $gamma$-Diversity.
-+ Under harsh living conditions, the $alpha$-Diversity is significantly lower than the $gamma$-Diversity, exhibiting a high level of specialization.
-+ Hyperoptimal living conditions result in a higher $gamma$-Diversity than harsh living conditions.
++ Under hyperoptimal living conditions, the #math.alpha\-Diversity is close to equal to the #math.gamma\-Diversity ($beta = gamma slash alpha -> 1$).
++ Under harsh, heterogeneous living conditions, the #math.alpha\-Diversity is significantly lower than the #math.gamma\-Diversity, exhibiting strong regional specialization ($beta >> 1$).
++ Hyperoptimal living conditions result in a higher #math.gamma\-Diversity than harsh living conditions.
 
-Additionally, as a secondary expectation tied to RQ3: the generalistic decision models will be applicable to ecological interaction decisions only to a limited degree---expect transfer gaps and characteristic failure patterns that reveal how much (or how little) high-level biological and systems understanding such models actually encode.
+Additionally, tied directly to RQ3 on technology transfer: general-purpose typed decision models are expected to transfer to ecological interaction decisions only partially out of the box---exposing characteristic failure modes, calibration gaps, and latency-versus-accuracy trade-offs that characterize what systems-level understanding these models encode and where fine-tuning or formula distillation is required.
 
