@@ -7,10 +7,10 @@
 
 #![deny(missing_docs)]
 
-/// Domain types: cells, species, populations, global parameters.
+/// Domain types: cells, species, populations, global parameters, physics.
 pub mod model;
 
-/// Grid storage and neighborhood coordinates.
+/// Grid storage, boundary topologies, and neighborhood coordinates.
 pub mod grid;
 
 /// Error types shared across the kernel.
@@ -22,12 +22,18 @@ pub mod ports;
 /// Species registry backed by a slotmap with generational keys.
 pub mod registry;
 
-/// World state and tick orchestration.
+/// World state and double-buffered, chunk-parallel tick orchestration.
 pub mod world;
 
+/// Fluent scenario builder for tests and experiments.
+pub mod builder;
+
+pub use builder::WorldBuilder;
 pub use error::{Error, Result};
 pub use model::{
-    EnvState, GASES, Gas, GlobalParams, Population, PositiveF64, Species, SpeciesId, SpeciesTraits,
+    EnvState, GasAmounts, GasDef, GasId, GasRegistry, GlobalParams, Insolation, OrbitParams,
+    OrbitalState, PlanetParams, Population, PositiveF64, Species, SpeciesId, SpeciesLike,
+    SpeciesTraits, TraitDef, TraitId, TraitSchema,
 };
 pub use registry::{SpeciesRegistry, SpeciesRegistryIter};
 pub use world::{TickDriver, World};

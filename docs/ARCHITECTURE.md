@@ -98,11 +98,11 @@ Enforced by tests: same seed + same config => identical metrics hash (golden tra
 
 ## Grid and parallel execution
 
-- `Grid<T>` in `pbma-core::grid`: linearized dense storage, fixed chunk size (64x64 target), `width/height` in cells.
-- Neighborhoods: Von Neumann (4) and Moore (8, clockwise from north; diagonals weighted 1/sqrt(2) in exchange computations), computed from chunk-local coords with explicit bounds handling at world edges.
-- Double buffering: each tick reads the frozen previous snapshot and writes a fresh buffer, then swaps. Within a phase, work is split per chunk via rayon (`par_chunks_mut`), no shared mutable cell state.
-- Migration: phases emit flux deltas into a per-tick flux buffer keyed by (target cell, species key); fluxes are applied in a separate apply step after computation. This is message-passing between cells without aliasing.
-- Halo exchange / ghost cells are a later optimization; the first slice uses whole-world snapshot reads.
+- `Grid<T, CHUNK_SIZE>` in `pbma-core::grid`: chunk-first dense storage (`64x64` chunks by default), `width/height` in cells, exposing disjoint mutable chunk slices (`par_for_each_chunk_mut`) with zero `unsafe` code.
+- Neighborhoods & topologies: Von Neumann (4) and Moore (8, clockwise from north; diagonals weighted `1/sqrt(2)` in exchange computations), resolved via `Topology` (`Clamped`, `Planetary` wrapping east-west and clamping poles, or `Toroidal` wrapping both axes).
+- Double buffering: `World` holds a `DoubleBuffer<Cell>`. Each tick reads the frozen `front` snapshot and writes directly into pre-allocated `back` cells and per-chunk flux buffers across `rayon` workers, then merges fluxes in canonical chunk order and swaps buffers (`O(1)`).
+- Extensible vocabularies: `GasRegistry` (`O2`, `CO2`, `CH4`, `H2O`, `O3`, `N2` + custom gases) and `TraitSchema` (core traits + custom dimensions) use inline-first storage (`INLINE_GASES = 8`, `INLINE_TRAITS = 8`) to keep the hot path allocation-free while remaining runtime-extensible.
+- Scenario construction: `WorldBuilder` provides declarative setup for planetary mass/diameter, orbital parameters, topologies, spatial initializers, and species seeding.
 
 ## Invariants
 

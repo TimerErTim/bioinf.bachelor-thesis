@@ -3,40 +3,12 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use pbma_core::model::{
-    EnvState, GlobalParams, Population, PositiveF64, Species, SpeciesId, SpeciesTraits,
-};
+use pbma_core::model::{EnvState, Population, PositiveF64, Species, SpeciesId, SpeciesTraits};
 use pbma_core::ports::{EvolutionEngine, Recorder, Rng};
-use pbma_core::{TickDriver, World};
-
-fn params() -> GlobalParams {
-    GlobalParams {
-        gravity: 9.81,
-        day_length_ticks: 240,
-        axial_tilt: 0.0,
-        diffusion_coefficient: 0.0,
-        light_intensity: 1.0,
-    }
-}
-
-fn env() -> EnvState {
-    EnvState {
-        gases: [PositiveF64::ZERO; 4],
-        temperature: 300.0,
-        light: 0.5,
-    }
-}
+use pbma_core::{TickDriver, World, WorldBuilder};
 
 fn species(name: &str, growth_rate: f64) -> Species {
-    Species {
-        name: name.into(),
-        traits: SpeciesTraits {
-            optimal_temperature: 300.0,
-            temperature_tolerance: 10.0,
-            growth_rate,
-            crowding_threshold: 100.0,
-        },
-    }
+    Species::new(name, SpeciesTraits::new(300.0, 10.0, growth_rate, 100.0))
 }
 
 /// Fixed-sequence rng for reproducible engine tests.
@@ -72,16 +44,14 @@ impl Rng for SeqRng {
 struct SinkRecorder;
 
 impl Recorder for SinkRecorder {
-    fn record(&mut self, _tick: u64, _world: &pbma_core::World) {}
+    fn record(&mut self, _tick: u64, _world: &World) {}
 }
 
 fn driver_with(evolution: Option<(Box<dyn EvolutionEngine>, Vec<f64>)>) -> TickDriver {
-    // Null adapters: diffusion on a zero-gas field is identity, behavior on
-    // zero populations is zero, migration on empty cells emits nothing.
     struct NullEnvironment;
     impl pbma_core::ports::EnvironmentStep for NullEnvironment {
-        fn step(&self, cell: &pbma_core::ports::CellContext<'_>) -> EnvState {
-            *cell.env
+        fn step(&self, cell: &pbma_core::ports::CellContext<'_>, out: &mut EnvState) {
+            out.copy_from(cell.env);
         }
     }
     struct NullBehavior;
@@ -131,33 +101,31 @@ fn live_populations(world: &World) -> usize {
 
 #[test]
 fn extinct_species_is_pruned_and_populations_cleared() {
-    let mut world = World::new(2, 1, env(), params());
+    let mut world = WorldBuilder::new(2, 1)
+        .temperature_and_light(300.0, 0.5)
+        .build()
+        .unwrap();
     let id = world
         .registry_mut()
         .insert(species("doomed", 0.0))
         .expect("fresh registry");
-    // The species exists in the registry but has no population anywhere:
-    // the behavior phase can never revive it. Its traits yield zero growth.
     assert_eq!(count_species(&world), 1);
 
     let mut driver = driver_with(None);
     driver.with_evolution(Box::new(PruneOnly), SeqRng::shared(vec![]).0);
-
-    // sanity: one registered species, zero live populations
     assert_eq!(live_populations(&world), 0);
 
-    // Tick 1: engine reports the species extinct; kernel prunes it.
     driver.tick(&mut world, 1);
     assert_eq!(count_species(&world), 0, "extinct species must be pruned");
     assert!(world.registry().get(id).is_err(), "stale key detected");
 }
 
-/// Engine that only prunes, never spawns.
 struct PruneOnly;
 
 impl EvolutionEngine for PruneOnly {
     fn spawn_variants(
         &mut self,
+        _tick: u64,
         _world: &World,
         _rng: &mut dyn Rng,
         _out: &mut Vec<(SpeciesId, Species)>,
@@ -179,20 +147,21 @@ impl EvolutionEngine for PruneOnly {
 
 #[test]
 fn population_loss_triggers_extinction_next_tick() {
-    let mut world = World::new(2, 1, env(), params());
+    let mut world = WorldBuilder::new(2, 1)
+        .temperature_and_light(300.0, 0.0)
+        .build()
+        .unwrap();
     let id = world
         .registry_mut()
         .insert(species("dying", 0.0))
         .expect("fresh registry");
-    // Zero light stops growth; zero population amount means no live entry.
-    world.cells_mut()[0].env.light = 0.0;
-    world.cells_mut()[0].populations.push((
+    world.cell_mut(0, 0).unwrap().populations.push((
         id,
         Population {
             amount: PositiveF64::new(0.0),
         },
     ));
-    world.cells_mut()[1].populations.push((
+    world.cell_mut(1, 0).unwrap().populations.push((
         id,
         Population {
             amount: PositiveF64::new(0.0),
@@ -203,25 +172,17 @@ fn population_loss_triggers_extinction_next_tick() {
     driver.with_evolution(Box::new(PruneOnly), SeqRng::shared(vec![]).0);
     driver.tick(&mut world, 0);
 
-    // populations with amount 0 are dropped by the behavior-apply step;
-    // the species then has no live populations and is pruned.
     assert_eq!(live_populations(&world), 0);
     assert_eq!(count_species(&world), 0);
 }
 
 #[test]
 fn spawned_variant_is_registered_and_descended() {
-    let mut world = World::new(2, 1, env(), params());
-    let parent = world
-        .registry_mut()
-        .insert(species("root", 0.1))
-        .expect("fresh registry");
-    world.cells_mut()[0].populations.push((
-        parent,
-        Population {
-            amount: PositiveF64::new(10.0),
-        },
-    ));
+    let mut world = WorldBuilder::new(2, 1)
+        .seed_species_at(species("root", 0.1), 0, 0, 10.0)
+        .build()
+        .unwrap();
+    let parent = world.registry().iter().next().unwrap().0;
 
     struct SpawnOnce {
         fired: bool,
@@ -230,6 +191,7 @@ fn spawned_variant_is_registered_and_descended() {
     impl EvolutionEngine for SpawnOnce {
         fn spawn_variants(
             &mut self,
+            tick: u64,
             world: &World,
             _rng: &mut dyn Rng,
             out: &mut Vec<(SpeciesId, Species)>,
@@ -248,13 +210,10 @@ fn spawned_variant_is_registered_and_descended() {
             else {
                 return;
             };
-            let variant = Species {
-                name: format!("{}'", base.name),
-                traits: SpeciesTraits {
-                    growth_rate: base.traits.growth_rate * 1.1,
-                    ..base.traits
-                },
-            };
+            let mut traits = base.traits.clone();
+            let rate = traits.growth_rate() * 1.1;
+            traits.set(pbma_core::TraitId::GROWTH_RATE, rate);
+            let variant = Species::variant(format!("{}'", base.name), traits, parent_id, tick);
             out.push((parent_id, variant));
         }
 
@@ -269,7 +228,7 @@ fn spawned_variant_is_registered_and_descended() {
         }),
         SeqRng::shared(vec![]).0,
     );
-    driver.tick(&mut world, 0);
+    driver.tick(&mut world, 3);
 
     assert_eq!(count_species(&world), 2, "variant joined the registry");
     let child = world
@@ -278,5 +237,7 @@ fn spawned_variant_is_registered_and_descended() {
         .find(|(_, s)| s.name == "root'")
         .expect("variant present")
         .1;
-    assert!((child.traits.growth_rate - 0.11).abs() < 1e-9);
+    assert!((child.traits.growth_rate() - 0.11).abs() < 1e-9);
+    assert_eq!(child.parent, Some(parent));
+    assert_eq!(child.spawn_tick, 3);
 }

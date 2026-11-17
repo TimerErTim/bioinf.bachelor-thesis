@@ -2,8 +2,7 @@
 
 use slotmap::{DefaultKey, SlotMap};
 
-use crate::model::{Species, SpeciesId};
-
+use crate::model::{Species, SpeciesId, SpeciesTraits};
 use crate::{Error, Result};
 
 /// Global table of live species.
@@ -96,14 +95,11 @@ impl SpeciesRegistry {
     /// [`Error::DuplicateSpecies`] when the generated name is taken.
     pub fn spawn_variant<F>(&mut self, parent: SpeciesId, mutate: F) -> Result<SpeciesId>
     where
-        F: FnOnce(crate::model::SpeciesTraits) -> crate::model::SpeciesTraits,
+        F: FnOnce(SpeciesTraits) -> SpeciesTraits,
     {
         let base = self.get(parent)?;
         let name = format!("{}'", base.name);
-        let variant = Species {
-            name,
-            traits: mutate(base.traits),
-        };
+        let variant = Species::variant(name, mutate(base.traits.clone()), parent, 0);
         self.insert(variant)
     }
 }
@@ -130,18 +126,9 @@ impl<'a> Iterator for SpeciesRegistryIter<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::SpeciesTraits;
 
     fn species(name: &str) -> Species {
-        Species {
-            name: name.into(),
-            traits: SpeciesTraits {
-                optimal_temperature: 300.0,
-                temperature_tolerance: 5.0,
-                growth_rate: 0.1,
-                crowding_threshold: 100.0,
-            },
-        }
+        Species::new(name, SpeciesTraits::new(300.0, 5.0, 0.1, 100.0))
     }
 
     #[test]
@@ -166,7 +153,6 @@ mod tests {
         reg.remove(id);
         assert!(!reg.contains(id));
         assert!(reg.get(id).is_err());
-        // slot reuse must not resurrect the old id
         let _ = reg.insert(species("b")).unwrap();
         assert!(reg.get(id).is_err());
     }
@@ -177,14 +163,16 @@ mod tests {
         let parent = reg.insert(species("a")).unwrap();
         let child = reg
             .spawn_variant(parent, |mut t| {
-                t.growth_rate += 0.01;
+                let rate = t.growth_rate() + 0.01;
+                t.set(crate::model::TraitId::GROWTH_RATE, rate);
                 t
             })
             .unwrap();
         assert_eq!(reg.get(child).unwrap().name, "a'");
+        assert_eq!(reg.get(child).unwrap().parent, Some(parent));
         assert!(
-            reg.get(child).unwrap().traits.growth_rate
-                > reg.get(parent).unwrap().traits.growth_rate
+            reg.get(child).unwrap().traits.growth_rate()
+                > reg.get(parent).unwrap().traits.growth_rate()
         );
     }
 
@@ -208,7 +196,10 @@ mod tests {
     fn get_mut_allows_trait_updates() {
         let mut reg = SpeciesRegistry::new();
         let id = reg.insert(species("a")).unwrap();
-        reg.get_mut(id).unwrap().traits.growth_rate = 0.5;
-        assert_eq!(reg.get(id).unwrap().traits.growth_rate, 0.5);
+        reg.get_mut(id)
+            .unwrap()
+            .traits
+            .set(crate::model::TraitId::GROWTH_RATE, 0.5);
+        assert!((reg.get(id).unwrap().traits.growth_rate() - 0.5).abs() < 1e-12);
     }
 }

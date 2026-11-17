@@ -1,6 +1,6 @@
 //! Kernel error types.
 
-use crate::model::SpeciesId;
+use crate::model::{GasId, SpeciesId, TraitId};
 
 /// Result alias for kernel operations.
 pub type Result<T> = std::result::Result<T, Error>;
@@ -15,6 +15,35 @@ pub enum Error {
     /// A species name is already registered.
     #[error("species name already registered: {0}")]
     DuplicateSpecies(String),
+
+    /// A gas id is outside the gas registry.
+    #[error("unknown gas id {0:?}")]
+    UnknownGas(GasId),
+
+    /// A gas symbol or name is already registered.
+    #[error("gas already registered: {0}")]
+    DuplicateGas(String),
+
+    /// A species trait id is outside the trait schema.
+    #[error("unknown trait id {0:?}")]
+    UnknownTrait(TraitId),
+
+    /// A species trait key is already registered.
+    #[error("trait key already registered: {0}")]
+    DuplicateTrait(String),
+
+    /// Grid dimensions must be non-zero.
+    #[error("invalid grid dimensions {width}x{height}: both must be > 0")]
+    InvalidDimensions {
+        /// Requested width.
+        width: u32,
+        /// Requested height.
+        height: u32,
+    },
+
+    /// Global or planetary configuration parameter is invalid.
+    #[error("invalid simulation parameter: {0}")]
+    InvalidParams(String),
 
     /// Grid coordinate is outside the world bounds.
     #[error("cell {x}, {y} outside world bounds {width}x{height}")]
