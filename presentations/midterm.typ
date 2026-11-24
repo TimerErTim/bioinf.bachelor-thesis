@@ -8,6 +8,8 @@
 )
 #let (slide, scene) = sr.set-option(handout: handout)
 
+// TODO: add more problem and sister literature context, what are we trying to solve or proof
+
 #let presentation-date = datetime(year: 2026, month: 12, day: 03)
 #set document(
   title: title + ": Midterm Presentation",
